@@ -5,6 +5,8 @@ import {
   Phone, ReceiptText, ShieldCheck, Sparkles, Upload, UserPlus, Wallet, Zap,
 } from 'lucide-react';
 import { prisma } from '@/lib/db';
+import { ratingsByListing, reviewerName } from '@/lib/reviews';
+import Stars from '@/components/Stars';
 import { naira } from '@/lib/format';
 import { PLATFORMS, site, whatsappLink } from '@/lib/site';
 import ListingImage from '@/components/ListingImage';
@@ -26,10 +28,22 @@ const getHomeData = unstable_cache(
           take: 6,
         }),
       ]);
+      const [ratings, latest, overall] = await Promise.all([
+        ratingsByListing(listings.map((l) => l.id)),
+        prisma.review.findMany({
+          where: { hidden: false, comment: { not: '' } },
+          orderBy: { createdAt: 'desc' },
+          take: 3,
+          include: { user: { select: { name: true } }, listing: { select: { title: true } } },
+        }),
+        prisma.review.aggregate({ where: { hidden: false }, _avg: { rating: true }, _count: { _all: true } }),
+      ]);
       return {
         users,
         delivered,
         inStock,
+        reviews: latest.map((r) => ({ id: r.id, rating: r.rating, comment: r.comment, name: reviewerName(r.user.name), item: r.listing.title })),
+        overall: { avg: overall._avg.rating ?? 0, count: overall._count._all },
         // Dates don't survive the cache, so store the image time as a number
         listings: listings.map((l) => ({
           id: l.id,
@@ -39,10 +53,11 @@ const getHomeData = unstable_cache(
           price: l.price,
           stock: l._count.credentials,
           imageAt: l.imageAt ? l.imageAt.getTime() : null,
+          rating: ratings[l.id],
         })),
       };
     } catch {
-      return { users: 0, delivered: 0, inStock: 0, listings: [] };
+      return { users: 0, delivered: 0, inStock: 0, listings: [], reviews: [], overall: { avg: 0, count: 0 } };
     }
   },
   ['home-data'],
@@ -66,7 +81,7 @@ const features = [
 ];
 
 export default async function HomePage() {
-  const { users, delivered, inStock, listings } = await getHomeData();
+  const { users, delivered, inStock, listings, reviews, overall } = await getHomeData();
   const cards = listings.map((l) => ({ ...l, imageAt: l.imageAt ? new Date(l.imageAt) : null }));
 
   return (
@@ -278,6 +293,34 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ───────────── REVIEWS (real buyers only; hidden until there are some) ───────────── */}
+      {reviews.length > 0 && (
+        <section className="container-x pt-28">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="eyebrow mb-3">Reviews</p>
+              <h2 className="h-section">What buyers say</h2>
+              <p className="mt-3 flex items-center gap-2 text-[17px] text-muted">
+                <Stars value={overall.avg} size={18} /> <strong className="text-white">{overall.avg.toFixed(1)}</strong> from {overall.count} review{overall.count === 1 ? '' : 's'}
+              </p>
+            </div>
+            <Link href="/reviews" className="btn btn-ghost">All reviews <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+          </div>
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            {reviews.map((r) => (
+              <figure key={r.id} className="card flex flex-col p-6">
+                <Stars value={r.rating} />
+                <blockquote className="mt-4 flex-1 text-[16px] leading-relaxed text-soft">“{r.comment}”</blockquote>
+                <figcaption className="mt-5 text-sm">
+                  <span className="font-semibold text-white">{r.name}</span>
+                  <span className="text-muted"> · bought {r.item}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ───────────── FAQ ───────────── */}
       <section id="faq" className="container-x scroll-mt-24 pt-28">

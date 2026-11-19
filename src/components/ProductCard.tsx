@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, Flame } from 'lucide-react';
 import ListingImage from './ListingImage';
+import Stars from './Stars';
 import { naira } from '@/lib/format';
 
 export type ProductCardData = {
@@ -11,6 +12,7 @@ export type ProductCardData = {
   price: number;
   stock: number;
   imageAt: Date | null;
+  rating?: { avg: number; count: number };
 };
 
 /** The product tile used on the homepage and in the customer marketplace. */
@@ -58,6 +60,13 @@ export default function ProductCard({ p, href }: { p: ProductCardData; href: str
       {/* Body */}
       <div className="-mt-6 flex flex-1 flex-col gap-2 px-5 pb-5">
         <h3 className="relative text-[17px] font-semibold leading-snug text-white">{p.title}</h3>
+        {p.rating && p.rating.count > 0 && (
+          <div className="flex items-center gap-1.5 text-[13px] text-muted">
+            <Stars value={p.rating.avg} size={14} />
+            <span className="font-semibold text-white">{p.rating.avg.toFixed(1)}</span>
+            <span>({p.rating.count})</span>
+          </div>
+        )}
         {p.description && <p className="line-clamp-2 text-sm leading-relaxed text-muted">{p.description}</p>}
 
         <div className="mt-auto flex items-end justify-between gap-3 pt-4">

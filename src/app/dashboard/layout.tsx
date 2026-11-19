@@ -8,6 +8,7 @@ const items: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: 'dashboard', exact: true },
   { href: '/dashboard/marketplace', label: 'Marketplace', icon: 'market' },
   { href: '/dashboard/wallet', label: 'Wallet', icon: 'wallet' },
+  { href: '/dashboard/referrals', label: 'Referrals', icon: 'gift' },
   { href: '/dashboard/api', label: 'API', icon: 'api' },
   { href: '/dashboard/support', label: 'Support', icon: 'support' },
   { href: '/dashboard/settings', label: 'Settings', icon: 'settings' },

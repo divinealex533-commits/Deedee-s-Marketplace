@@ -11,6 +11,7 @@ const items: NavItem[] = [
   { href: '/admin/credentials', label: 'Credentials pool', icon: 'pool' },
   { href: '/admin/orders', label: 'Orders', icon: 'orders' },
   { href: '/admin/users', label: 'Users', icon: 'users' },
+  { href: '/admin/reviews', label: 'Reviews', icon: 'reviews' },
   { href: '/admin/bank-accounts', label: 'Bank accounts', icon: 'banks' },
   { href: '/admin/settings', label: 'Settings', icon: 'settings' },
 ];

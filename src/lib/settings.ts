@@ -18,3 +18,21 @@ export const getAnnouncement = unstable_cache(
   ['announcement'],
   { tags: ['settings'], revalidate: 300 },
 );
+
+export type ReferralConfig = { enabled: boolean; percent: number; maxBonus: number; minDeposit: number };
+
+/** Amounts in naira. Default: 5% of a friend's first deposit, up to ₦2,000, for deposits of ₦1,000+. */
+const DEFAULT_REFERRAL: ReferralConfig = { enabled: true, percent: 5, maxBonus: 2000, minDeposit: 1000 };
+
+export const getReferralConfig = unstable_cache(
+  async (): Promise<ReferralConfig> => {
+    try {
+      const row = await prisma.setting.findUnique({ where: { key: 'referral' } });
+      return row ? { ...DEFAULT_REFERRAL, ...JSON.parse(row.value) } : DEFAULT_REFERRAL;
+    } catch {
+      return DEFAULT_REFERRAL;
+    }
+  },
+  ['referral-config'],
+  { tags: ['settings'], revalidate: 300 },
+);

@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { Megaphone } from 'lucide-react';
-import { saveAnnouncement, updateAdminName } from '@/app/actions/admin';
+import { saveAnnouncement, saveReferralConfig, updateAdminName } from '@/app/actions/admin';
 import FormMessage from '@/components/FormMessage';
 import SubmitButton from '@/components/SubmitButton';
 import { useActionForm } from '@/components/useActionForm';
-import type { Announcement } from '@/lib/settings';
+import type { Announcement, ReferralConfig } from '@/lib/settings';
 
 const TONES = {
   accent: { label: 'Purple', cls: 'from-accent to-[#8B5CF6]' },
@@ -75,6 +75,40 @@ export function NameForm({ initial }: { initial: string }) {
         <SubmitButton pending={pending} pendingText="Saving…">Save</SubmitButton>
       </div>
       <FormMessage state={state} />
+    </form>
+  );
+}
+
+export function ReferralForm({ initial }: { initial: ReferralConfig }) {
+  const { state, pending, onSubmit } = useActionForm(saveReferralConfig);
+  const [pct, setPct] = useState(initial.percent);
+  const [max, setMax] = useState(initial.maxBonus);
+  const example = Math.min((10000 * pct) / 100, max || Infinity);
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div>
+          <label htmlFor="ref-pct" className="label">Reward (%)</label>
+          <input id="ref-pct" name="percent" type="number" min={0} max={50} step="0.5" value={pct} onChange={(e) => setPct(Number(e.target.value))} className="input" />
+        </div>
+        <div>
+          <label htmlFor="ref-max" className="label">Max bonus (₦)</label>
+          <input id="ref-max" name="maxBonus" type="number" min={0} step={100} value={max} onChange={(e) => setMax(Number(e.target.value))} className="input" />
+        </div>
+        <div>
+          <label htmlFor="ref-min" className="label">Min deposit (₦)</label>
+          <input id="ref-min" name="minDeposit" type="number" min={0} step={100} defaultValue={initial.minDeposit} className="input" />
+        </div>
+      </div>
+      <p className="rounded-xl bg-panel2 px-4 py-3 text-sm text-soft">
+        Example: a friend’s first deposit of ₦10,000 earns the referrer <strong className="text-white">₦{example.toLocaleString()}</strong>.
+      </p>
+      <label className="flex cursor-pointer items-center gap-2.5 text-sm text-soft">
+        <input type="checkbox" name="enabled" defaultChecked={initial.enabled} className="h-[18px] w-[18px] accent-accent" />
+        Referral rewards are on
+      </label>
+      <FormMessage state={state} />
+      <SubmitButton pending={pending} pendingText="Saving…">Save referral rewards</SubmitButton>
     </form>
   );
 }

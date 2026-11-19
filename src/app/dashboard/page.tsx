@@ -21,7 +21,7 @@ export default async function DashboardPage({
   const [orders, tx] = await Promise.all([
     prisma.order.findMany({
       where: { userId: user.id },
-      include: { listing: { select: { title: true, platform: true } } },
+      include: { listing: { select: { id: true, title: true, platform: true } } },
       orderBy: { createdAt: 'desc' },
       take: 50,
     }),
@@ -32,6 +32,8 @@ export default async function DashboardPage({
     }),
   ]);
 
+  const myReviews = await prisma.review.findMany({ where: { userId: user.id }, select: { listingId: true, rating: true, comment: true } });
+  const reviewFor = new Map(myReviews.map((r) => [r.listingId, { rating: r.rating, comment: r.comment }]));
   const spent = orders.filter((o) => o.status !== 'REFUNDED').reduce((a, o) => a + o.amount, 0);
   const awaiting = orders.filter((o) => o.status === 'ESCROW').length;
   const firstName = user.name.split(' ')[0];
@@ -76,6 +78,8 @@ export default async function DashboardPage({
               <OrderCard
                 key={o.id}
                 id={o.id}
+                listingId={o.listing.id}
+                review={reviewFor.get(o.listing.id) ?? null}
                 title={o.listing.title}
                 platform={o.listing.platform}
                 amount={naira(o.amount)}

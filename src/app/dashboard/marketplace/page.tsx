@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
 import { naira } from '@/lib/format';
 import ProductCard from '@/components/ProductCard';
+import { ratingsByListing } from '@/lib/reviews';
 
 export const metadata = { title: 'Marketplace' };
 
@@ -26,6 +27,7 @@ export default async function MarketplacePage({
     }),
     prisma.listing.findMany({ where: { active: true }, select: { platform: true }, distinct: ['platform'] }),
   ]);
+  const ratings = await ratingsByListing(listings.map((l) => l.id));
   // In-stock listings first
   listings.sort((a, b) => Number(b._count.credentials > 0) - Number(a._count.credentials > 0));
 
@@ -68,7 +70,7 @@ export default async function MarketplacePage({
             <ProductCard
               key={l.id}
               href={`/dashboard/marketplace/${l.id}`}
-              p={{ id: l.id, title: l.title, platform: l.platform, description: l.description, price: l.price, stock: l._count.credentials, imageAt: l.imageAt }}
+              p={{ id: l.id, title: l.title, platform: l.platform, description: l.description, price: l.price, stock: l._count.credentials, imageAt: l.imageAt, rating: ratings[l.id] }}
             />
           ))}
         </div>

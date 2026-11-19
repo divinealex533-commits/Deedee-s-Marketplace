@@ -2,16 +2,17 @@ import Link from 'next/link';
 import { CheckCircle2, Circle } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
-import { getAnnouncement } from '@/lib/settings';
-import { AnnouncementForm, NameForm } from './Forms';
+import { getAnnouncement, getReferralConfig } from '@/lib/settings';
+import { AnnouncementForm, NameForm, ReferralForm } from './Forms';
 
 export const metadata = { title: 'Settings' };
 export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
   const admin = await requireAdmin();
-  const [announcement, banks, inStock, withImage] = await Promise.all([
+  const [announcement, referral, banks, inStock, withImage] = await Promise.all([
     getAnnouncement(),
+    getReferralConfig(),
     prisma.bankAccount.count({ where: { active: true } }),
     prisma.credential.count({ where: { status: 'AVAILABLE', listing: { active: true } } }),
     prisma.listing.count({ where: { active: true, imageAt: { not: null } } }),
@@ -72,10 +73,17 @@ export default async function SettingsPage() {
         </section>
       </div>
 
-      <section aria-labelledby="profile" className="card max-w-xl p-6">
+      <div className="flex flex-wrap gap-5">
+      <section aria-labelledby="referral" className="card min-w-0 flex-[1_1_380px] p-6">
+        <h2 id="referral" className="text-lg font-semibold text-white">Referral rewards</h2>
+        <p className="mb-5 mt-1 text-sm text-muted">When someone who signed up with a customer’s link gets their first deposit approved, that customer gets a bonus in their wallet.</p>
+        <ReferralForm initial={referral} />
+      </section>
+      <section aria-labelledby="profile" className="card min-w-0 flex-[1_1_320px] self-start p-6">
         <h2 id="profile" className="mb-4 text-lg font-semibold text-white">Your display name</h2>
         <NameForm initial={admin.name} />
       </section>
+      </div>
     </>
   );
 }

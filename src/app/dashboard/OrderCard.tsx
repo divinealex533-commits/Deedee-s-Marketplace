@@ -2,15 +2,27 @@
 
 import { useState, useTransition } from 'react';
 import type { OrderStatus as Status } from '@prisma/client';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, ReceiptText } from 'lucide-react';
 import { confirmOrder, disputeOrder, revealOrder } from '@/app/actions/shop';
 import CopyButton from '@/components/CopyButton';
 import OrderStatus from '@/components/OrderStatus';
 import SubmitButton from '@/components/SubmitButton';
+import Stars from '@/components/Stars';
+import ReviewForm from './ReviewForm';
 
 type Creds = { login: string; password: string; notes: string };
 
-export default function OrderCard(props: { id: string; title: string; platform: string; amount: string; date: string; status: Status }) {
+export default function OrderCard(props: {
+  id: string;
+  listingId: string;
+  title: string;
+  platform: string;
+  amount: string;
+  date: string;
+  status: Status;
+  review: { rating: number; comment: string } | null;
+}) {
+  const [reviewing, setReviewing] = useState(false);
   const [creds, setCreds] = useState<Creds | null>(null);
   const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
@@ -37,6 +49,7 @@ export default function OrderCard(props: { id: string; title: string; platform: 
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <OrderStatus status={props.status} />
+          <a href={`/receipt/${props.id}`} className="btn btn-ghost btn-sm"><ReceiptText className="h-4 w-4" aria-hidden="true" /> Receipt</a>
           {!refunded && (
             <button type="button" onClick={toggle} className="btn btn-ghost btn-sm" aria-expanded={open}>
               {pending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : open ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
@@ -78,6 +91,23 @@ export default function OrderCard(props: { id: string; title: string; platform: 
             <input type="hidden" name="orderId" value={props.id} />
             <SubmitButton className="btn btn-danger btn-sm" pendingText="Sending…">Report a problem</SubmitButton>
           </form>
+        </div>
+      )}
+      {!refunded && props.status !== 'ESCROW' && (
+        <div className="mt-4 border-t border-line pt-4">
+          {reviewing ? (
+            <ReviewForm listingId={props.listingId} existing={props.review} onDone={() => setReviewing(false)} />
+          ) : props.review ? (
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <Stars value={props.review.rating} />
+              <span className="text-muted">Your review</span>
+              <button type="button" onClick={() => setReviewing(true)} className="font-medium text-accent-text hover:text-white">Edit</button>
+            </div>
+          ) : (
+            <button type="button" onClick={() => setReviewing(true)} className="inline-flex items-center gap-2 text-sm font-semibold text-accent-text hover:text-white">
+              <Stars value={0} size={14} /> Rate this purchase
+            </button>
+          )}
         </div>
       )}
     </div>

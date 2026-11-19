@@ -46,6 +46,11 @@ A marketplace for premium digital accounts. Customers sign up, fund a wallet by 
 - Orders auto-confirm 24 hours after purchase (daily job at `/api/cron/daily`, protected by `CRON_SECRET`)
 - App icon, installable on phones (“Add to Home Screen”), sitemap, robots.txt and a share image for WhatsApp/X/Facebook
 
+**Referrals, receipts & reviews**
+- Referral rewards: customers get a % of a friend’s first approved deposit (default 5%, max ₦2,000, min deposit ₦1,000; change in Admin → Settings). Customers see their link, WhatsApp share, friends and bonuses in Dashboard → Referrals
+- Receipts: every order has a printable receipt (`/receipt/{order id}`) with Print / Save as PDF, linked from the customer’s orders and Admin → Orders
+- Reviews: buyers rate purchases (1–5 stars + comment, editable). Ratings show on product cards and pages, a public `/reviews` page with star filters, and a homepage section. Admin → Reviews to hide or delete
+
 **Security**
 - Passwords hashed with bcrypt
 - Stored credentials encrypted with AES-256-GCM; only the buyer and admins can decrypt them

@@ -7,6 +7,7 @@ const links = [
   { href: '/#stock', label: 'Marketplace' },
   { href: '/#features', label: 'Features' },
   { href: '/#how', label: 'How it works' },
+  { href: '/reviews', label: 'Reviews' },
   { href: '/#faq', label: 'FAQ' },
   { href: '/#support', label: 'Support' },
   { href: '/docs/api', label: 'API' },

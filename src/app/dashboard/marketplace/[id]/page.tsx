@@ -7,6 +7,9 @@ import { naira } from '@/lib/format';
 import { previewLogin } from '@/lib/image';
 import ListingImage from '@/components/ListingImage';
 import BuyPanel from './BuyPanel';
+import Stars from '@/components/Stars';
+import { reviewerName } from '@/lib/reviews';
+import { formatDate } from '@/lib/format';
 
 const ERRORS: Record<string, string> = {
   funds: 'You don’t have enough in your wallet for that. Fund your wallet and try again.',
@@ -41,6 +44,16 @@ export default async function ListingPage({
     select: { id: true, login: true, previewUrl: true },
   });
   const stock = listing._count.credentials;
+  const [reviews, summary] = await Promise.all([
+    prisma.review.findMany({
+      where: { listingId: id, hidden: false },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      include: { user: { select: { name: true } } },
+    }),
+    prisma.review.aggregate({ where: { listingId: id, hidden: false }, _avg: { rating: true }, _count: { _all: true } }),
+  ]);
+  const avg = summary._avg.rating ?? 0;
 
   return (
     <>
@@ -57,6 +70,11 @@ export default async function ListingPage({
           <div className="space-y-4 p-6">
             <span className="badge bg-line text-soft">{listing.platform}</span>
             <h1 className="font-display text-2xl font-bold leading-tight text-white sm:text-3xl">{listing.title}</h1>
+            {summary._count._all > 0 && (
+              <a href="#reviews" className="flex items-center gap-2 text-sm text-muted hover:text-white">
+                <Stars value={avg} /> <strong className="text-white">{avg.toFixed(1)}</strong> · {summary._count._all} review{summary._count._all === 1 ? '' : 's'}
+              </a>
+            )}
             <div className="flex flex-wrap items-center gap-3">
               <span className="rounded-xl bg-accent/15 px-3 py-1.5 font-display text-2xl font-bold text-white">{naira(listing.price)}</span>
               <span className="text-sm text-muted">each</span>
@@ -96,6 +114,31 @@ export default async function ListingPage({
           />
         </section>
       </div>
+
+      <section id="reviews" aria-labelledby="reviews-title" className="card scroll-mt-24 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 id="reviews-title" className="text-lg font-semibold text-white">Buyer reviews</h2>
+          {summary._count._all > 0 && (
+            <span className="flex items-center gap-2 text-sm text-muted"><Stars value={avg} /> {avg.toFixed(1)} out of 5</span>
+          )}
+        </div>
+        {reviews.length ? (
+          <ul className="mt-4 grid gap-3 md:grid-cols-2">
+            {reviews.map((r) => (
+              <li key={r.id} className="rounded-2xl border border-line bg-panel2 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <Stars value={r.rating} size={14} />
+                  <span className="text-[12px] text-muted">{formatDate(r.createdAt)}</span>
+                </div>
+                {r.comment && <p className="mt-2 text-[15px] text-soft">{r.comment}</p>}
+                <p className="mt-2 text-[13px] font-semibold text-white">{reviewerName(r.user.name)} <span className="font-normal text-success">· verified buyer</span></p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 text-muted">No reviews yet. Buyers can rate this from their dashboard after purchase.</p>
+        )}
+      </section>
     </>
   );
 }

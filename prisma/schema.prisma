@@ -39,6 +39,7 @@ enum TxType {
   PURCHASE
   REFUND
   ADJUSTMENT
+  REFERRAL
 }
 
 enum DepositStatus {
@@ -69,6 +70,9 @@ model User {
   referredById  String?
   referredBy    User?         @relation("Referrals", fields: [referredById], references: [id])
   referrals     User[]        @relation("Referrals")
+  /// true once this user's referrer has been paid the referral bonus
+  referralBonusPaid Boolean   @default(false)
+  reviews       Review[]
   orders        Order[]
   transactions  Transaction[]
   deposits      Deposit[]
@@ -104,6 +108,7 @@ model Listing {
   /// Set when an image is uploaded; used to refresh cached images
   imageAt     DateTime?
   image       ListingImage?
+  reviews     Review[]
   credentials Credential[]
   orders      Order[]
   createdAt   DateTime     @default(now())
@@ -238,4 +243,22 @@ model Setting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+/// A buyer's rating of a listing (one per customer per listing, editable).
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String   @default("")
+  hidden    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, listingId])
+  @@index([listingId, hidden])
+  @@index([createdAt])
 }

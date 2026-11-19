@@ -69,7 +69,10 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                     <td className="break-all font-mono text-soft">{o.credential.login}</td>
                     <td className="text-white">{naira(o.amount)}</td>
                     <td><OrderStatus status={o.status} /></td>
-                    <td className="whitespace-nowrap text-muted">{formatDate(o.createdAt)}</td>
+                    <td className="whitespace-nowrap text-muted">
+                      {formatDate(o.createdAt)}
+                      <a href={`/receipt/${o.id}`} className="ml-2 text-xs font-medium text-accent-text">Receipt</a>
+                    </td>
                     <td>
                       {(o.status === 'DISPUTED' || o.status === 'ESCROW') && (
                         <div className="flex gap-2">

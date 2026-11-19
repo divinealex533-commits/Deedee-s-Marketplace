@@ -9,6 +9,7 @@ import { requireAdmin } from '@/lib/auth';
 import { decryptSecret, encryptSecret } from '@/lib/crypto';
 import { naira } from '@/lib/format';
 import { readImage } from '@/lib/image';
+import { getReferralConfig } from '@/lib/settings';
 import type { FormState } from './types';
 
 const kobo = (nairaValue: number) => Math.round(nairaValue * 100);
@@ -214,6 +215,7 @@ export async function approveDeposit(_: FormState, fd: FormData): Promise<FormSt
   const amount = Number(fd.get('amount'));
   if (!Number.isFinite(amount) || amount <= 0) return { error: 'Enter the amount you actually received.' };
   const k = kobo(amount);
+  const ref = await getReferralConfig();
 
   const done = await prisma.$transaction(async (tx) => {
     // Only a PENDING deposit can be approved, so double-clicks can't credit twice.
@@ -233,6 +235,21 @@ export async function approveDeposit(_: FormState, fd: FormData): Promise<FormSt
         description: `Bank transfer${d.bankAccount ? ` to ${d.bankAccount.bankName}` : ''}`,
       },
     });
+
+    // Referral reward: pay the referrer once, on this customer's first qualifying deposit.
+    if (ref.enabled && ref.percent > 0 && k >= ref.minDeposit * 100) {
+      const u = await tx.user.findUnique({ where: { id: d.userId }, select: { name: true, referredById: true, referralBonusPaid: true } });
+      if (u?.referredById && !u.referralBonusPaid) {
+        const bonus = Math.min(Math.round((k * ref.percent) / 100), ref.maxBonus * 100);
+        const claim = await tx.user.updateMany({ where: { id: d.userId, referralBonusPaid: false }, data: { referralBonusPaid: true } });
+        if (claim.count === 1 && bonus > 0) {
+          await tx.user.update({ where: { id: u.referredById }, data: { balance: { increment: bonus } } });
+          await tx.transaction.create({
+            data: { userId: u.referredById, type: 'REFERRAL', amount: bonus, description: `Referral bonus: ${u.name.split(' ')[0]} funded their wallet` },
+          });
+        }
+      }
+    }
     return true;
   });
 
@@ -303,6 +320,20 @@ export async function saveAnnouncement(_: FormState, fd: FormData): Promise<Form
   await prisma.setting.upsert({ where: { key: 'announcement' }, create: { key: 'announcement', value }, update: { value } });
   revalidateTag('settings');
   return { ok: enabled ? 'Announcement is live on the site.' : 'Saved. The announcement is turned off.' };
+}
+
+export async function saveReferralConfig(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const percent = Number(fd.get('percent'));
+  const maxBonus = Number(fd.get('maxBonus'));
+  const minDeposit = Number(fd.get('minDeposit'));
+  if (!(percent >= 0 && percent <= 50)) return { error: 'Reward % must be between 0 and 50.' };
+  if (!(maxBonus >= 0 && maxBonus <= 1_000_000)) return { error: 'Enter a sensible maximum bonus.' };
+  if (!(minDeposit >= 0)) return { error: 'Enter a minimum deposit of ₦0 or more.' };
+  const value = JSON.stringify({ enabled: fd.get('enabled') === 'on', percent, maxBonus, minDeposit });
+  await prisma.setting.upsert({ where: { key: 'referral' }, create: { key: 'referral', value }, update: { value } });
+  revalidateTag('settings');
+  return { ok: 'Referral rewards saved.' };
 }
 
 export async function updateAdminName(_: FormState, fd: FormData): Promise<FormState> {

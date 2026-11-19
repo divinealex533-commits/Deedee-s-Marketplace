@@ -14,6 +14,8 @@ html {
 
 body {
   @apply bg-ink text-text antialiased;
+  /* Safety net: nothing may make the page wider than the screen */
+  overflow-x: clip;
 }
 
 @keyframes heroProgress {
@@ -105,7 +107,8 @@ body {
     @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium;
   }
   .table-wrap {
-    @apply overflow-x-auto rounded-xl border border-line;
+    /* relative: keeps hidden screen-reader labels inside the scroll box (otherwise phones zoom out) */
+    @apply relative overflow-x-auto rounded-xl border border-line;
   }
   .data-table {
     @apply w-full min-w-[640px] border-collapse text-sm;
