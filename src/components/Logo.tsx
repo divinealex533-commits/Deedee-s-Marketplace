@@ -12,9 +12,16 @@ export function LogoMark({ size = 32 }: { size?: number }) {
 
 export default function Logo({ short = false, href = '/' }: { short?: boolean; href?: string }) {
   return (
-    <Link href={href} className="flex items-center gap-2.5 font-display text-xl font-bold text-white">
+    <Link href={href} className="flex shrink-0 items-center gap-2.5 whitespace-nowrap font-display text-xl font-bold text-white">
       <LogoMark />
-      {short ? site.shortName : site.name}
+      {short ? (
+        site.shortName
+      ) : (
+        <>
+          <span className="sm:hidden">{site.shortName}</span>
+          <span className="hidden sm:inline">{site.name}</span>
+        </>
+      )}
     </Link>
   );
 }

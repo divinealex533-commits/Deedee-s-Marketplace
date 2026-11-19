@@ -33,6 +33,12 @@ A marketplace for premium digital accounts. Customers sign up, fund a wallet by 
 - Orders: filter by status, refund to wallet or mark complete
 - Users: search, add funds manually (for bank transfers), ban/unban
 
+**Reseller API** (`/api/v1`, docs at `/docs/api`)
+- Customers create API keys in Dashboard → API (shown once, stored hashed, up to 5, revocable)
+- `GET /balance`, `GET /products`, `GET /products/{id}`, `POST /orders`, `GET /orders`, `GET /orders/{id}`
+- Orders return the logins immediately, are paid from the wallet, and accept a `reference` so retries never charge twice
+- 60 requests/minute per key
+
 **Security**
 - Passwords hashed with bcrypt
 - Stored credentials encrypted with AES-256-GCM; only the buyer and admins can decrypt them
@@ -103,6 +109,6 @@ src/app/(auth)            sign up, login, verify, forgot password
 src/app/dashboard         customer dashboard
 src/app/admin             admin dashboard
 src/app/actions           server logic (auth, shop, wallet, admin)
-src/app/api               receipt images, visit counter, logout
+src/app/api               reseller API (v1), receipt and listing images, visit counter, logout
 src/lib                   database, sessions, encryption, images
 ```

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Menu } from 'lucide-react';
+import { LayoutDashboard, Menu } from 'lucide-react';
 import Logo from './Logo';
 import { getSession } from '@/lib/auth';
 
@@ -9,6 +9,7 @@ const links = [
   { href: '/#how', label: 'How it works' },
   { href: '/#faq', label: 'FAQ' },
   { href: '/#support', label: 'Support' },
+  { href: '/docs/api', label: 'API' },
 ];
 
 export default async function SiteHeader() {
@@ -30,11 +31,11 @@ export default async function SiteHeader() {
 
         <div className="flex items-center gap-2">
           {session ? (
-            <Link href={dash} className="btn btn-primary">My dashboard</Link>
+            <Link href={dash} className="btn btn-primary whitespace-nowrap px-4 sm:px-5"><LayoutDashboard className="h-4 w-4" aria-hidden="true" /><span className="hidden sm:inline">My dashboard</span><span className="sm:hidden">Dashboard</span></Link>
           ) : (
             <>
               <Link href="/login" className="btn hidden text-soft hover:text-white sm:inline-flex">Log in</Link>
-              <Link href="/signup" className="btn btn-primary shadow-lg shadow-accent/30">Get started</Link>
+              <Link href="/signup" className="btn btn-primary whitespace-nowrap px-4 shadow-lg shadow-accent/30 sm:px-5">Get started</Link>
             </>
           )}
 

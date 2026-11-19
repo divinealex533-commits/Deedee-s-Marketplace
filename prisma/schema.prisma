@@ -72,6 +72,7 @@ model User {
   orders        Order[]
   transactions  Transaction[]
   deposits      Deposit[]
+  apiKeys       ApiKey[]
   createdAt     DateTime      @default(now())
 
   @@index([createdAt])
@@ -212,4 +213,20 @@ model Deposit {
 
   @@index([status, createdAt])
   @@index([userId, createdAt])
+}
+
+/// Reseller API key. Only a SHA-256 hash is stored; the full key is shown once when created.
+model ApiKey {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  /// First characters of the key, shown in the dashboard so you can tell keys apart
+  prefix     String
+  keyHash    String    @unique
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
 }

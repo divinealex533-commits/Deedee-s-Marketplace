@@ -9,6 +9,7 @@ import { naira } from '@/lib/format';
 import { PLATFORMS, site, whatsappLink } from '@/lib/site';
 import ListingImage from '@/components/ListingImage';
 import ProductCard from '@/components/ProductCard';
+import HeroSlider from '@/components/HeroSlider';
 
 // Numbers and stock refresh every 60 seconds: fast pages, quiet database.
 const getHomeData = unstable_cache(
@@ -77,37 +78,18 @@ export default async function HomePage() {
 
         <div className="container-x relative flex flex-wrap items-center gap-14 pb-20 pt-14 sm:pt-20 lg:pb-28">
           <div className="min-w-0 flex-[1_1_480px]">
-            <p className="inline-flex items-center gap-2 rounded-full border border-line2 bg-panel/70 px-3.5 py-1.5 text-sm text-soft backdrop-blur">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-pulse-dot rounded-full bg-success" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+            <HeroSlider />
+            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-line pt-6 text-[15px] text-soft">
+              <span className="inline-flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-pulse-dot rounded-full bg-success" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+                </span>
+                {inStock > 0 ? `${inStock.toLocaleString()} in stock now` : 'New stock added regularly'}
               </span>
-              {inStock > 0 ? `${inStock.toLocaleString()} accounts in stock right now` : 'New stock added regularly'}
-            </p>
-
-            <h1 className="mt-6 font-display text-[clamp(42px,6.4vw,76px)] font-bold leading-[1.02] tracking-tight text-white">
-              Premium accounts,
-              <br />
-              <span className="text-gradient">delivered in seconds.</span>
-            </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
-              Fund your wallet once, preview exactly what you’re buying, and get the login the moment you pay. Real support on WhatsApp, every day.
-            </p>
-
-            <div className="mt-9 flex flex-wrap gap-3.5">
-              <Link href="/signup" className="btn btn-primary group px-7 py-4 text-base shadow-xl shadow-accent/30">
-                Create free account <ArrowRight className="h-[18px] w-[18px] transition group-hover:translate-x-0.5" aria-hidden="true" />
-              </Link>
-              <Link href="/#stock" className="btn btn-ghost bg-panel/50 px-7 py-4 text-base backdrop-blur">
-                Browse what’s in stock
-              </Link>
+              <span className="flex items-center gap-2"><ShieldCheck className="h-[18px] w-[18px] text-accent-text" aria-hidden="true" /> Refund protection</span>
+              <span className="flex items-center gap-2"><MessageCircle className="h-[18px] w-[18px] text-accent-text" aria-hidden="true" /> 24/7 WhatsApp</span>
             </div>
-
-            <ul className="mt-10 flex flex-wrap gap-x-7 gap-y-3 text-[15px] text-soft">
-              <li className="flex items-center gap-2"><Zap className="h-[18px] w-[18px] text-accent-text" aria-hidden="true" /> Instant delivery</li>
-              <li className="flex items-center gap-2"><ShieldCheck className="h-[18px] w-[18px] text-accent-text" aria-hidden="true" /> Refund protection</li>
-              <li className="flex items-center gap-2"><MessageCircle className="h-[18px] w-[18px] text-accent-text" aria-hidden="true" /> 24/7 WhatsApp</li>
-            </ul>
           </div>
 
           {/* App preview mock-up */}

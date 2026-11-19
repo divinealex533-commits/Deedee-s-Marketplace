@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Banknote, KeyRound, Landmark, LayoutDashboard, LifeBuoy, Settings, ShoppingBag, ShoppingCart, Users, Wallet,
+  Banknote, Code2, KeyRound, Landmark, LayoutDashboard, LifeBuoy, Settings, ShoppingBag, ShoppingCart, Users, Wallet,
 } from 'lucide-react';
 
 const ICONS = {
@@ -17,6 +17,7 @@ const ICONS = {
   users: Users,
   deposits: Banknote,
   banks: Landmark,
+  api: Code2,
 };
 
 export type NavItem = { href: string; label: string; icon: keyof typeof ICONS; exact?: boolean };

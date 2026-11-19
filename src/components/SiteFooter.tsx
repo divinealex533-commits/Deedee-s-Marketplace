@@ -17,6 +17,7 @@ export default function SiteFooter() {
               <li><Link href="/#features" className="hover:text-white">Features</Link></li>
               <li><Link href="/signup" className="hover:text-white">Create account</Link></li>
               <li><Link href="/login" className="hover:text-white">Log in</Link></li>
+              <li><Link href="/docs/api" className="hover:text-white">API docs</Link></li>
             </ul>
           </div>
           <div>
