@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import './globals.css';
-import { site } from '@/lib/site';
+import { site, SITE_URL } from '@/lib/site';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
 
 export const metadata: Metadata = {
   title: { default: site.name, template: `%s · ${site.name}` },
   description: site.description,
-  metadataBase: process.env.APP_URL ? new URL(process.env.APP_URL) : undefined,
+  metadataBase: new URL(SITE_URL),
   openGraph: { title: site.name, description: site.description, type: 'website' },
 };
 

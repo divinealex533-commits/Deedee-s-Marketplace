@@ -44,3 +44,22 @@ export async function deleteReview(fd: FormData) {
   revalidatePath('/admin/reviews');
   revalidatePath('/reviews');
 }
+
+/** Add genuine feedback a customer sent on WhatsApp (shown publicly as "via WhatsApp"). */
+export async function addWhatsAppReview(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const authorName = String(fd.get('authorName') ?? '').trim().slice(0, 60);
+  const rating = Math.round(Number(fd.get('rating')));
+  const comment = String(fd.get('comment') ?? '').trim().slice(0, 500);
+  const listingId = String(fd.get('listingId') ?? '') || null;
+
+  if (fd.get('consent') !== 'on') return { error: 'Only add feedback the customer really sent you, with their permission.' };
+  if (authorName.length < 2) return { error: 'Enter the customer’s name as they’d like it shown.' };
+  if (!(rating >= 1 && rating <= 5)) return { error: 'Choose a star rating.' };
+  if (comment.length < 3) return { error: 'Paste what the customer wrote.' };
+
+  await prisma.review.create({ data: { authorName, rating, comment, listingId, source: 'whatsapp' } });
+  revalidatePath('/admin/reviews');
+  revalidatePath('/reviews');
+  return { ok: 'Feedback added. It shows on the site as “via WhatsApp”.' };
+}

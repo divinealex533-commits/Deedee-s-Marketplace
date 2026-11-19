@@ -4,6 +4,7 @@ import { formatDate } from '@/lib/format';
 import { deleteReview, toggleReviewHidden } from '@/app/actions/reviews';
 import SubmitButton from '@/components/SubmitButton';
 import Stars from '@/components/Stars';
+import AddFeedbackForm from './AddFeedbackForm';
 
 export const metadata = { title: 'Reviews' };
 export const dynamic = 'force-dynamic';
@@ -12,7 +13,7 @@ export default async function AdminReviewsPage({ searchParams }: { searchParams:
   const { show } = await searchParams;
   const filter = show === 'hidden' ? { hidden: true } : show === 'low' ? { rating: { lte: 2 } } : {};
 
-  const [reviews, summary] = await Promise.all([
+  const [reviews, summary, listings] = await Promise.all([
     prisma.review.findMany({
       where: filter,
       orderBy: { createdAt: 'desc' },
@@ -20,6 +21,7 @@ export default async function AdminReviewsPage({ searchParams }: { searchParams:
       include: { user: { select: { name: true, email: true } }, listing: { select: { title: true } } },
     }),
     prisma.review.aggregate({ where: { hidden: false }, _avg: { rating: true }, _count: { _all: true } }),
+    prisma.listing.findMany({ orderBy: { createdAt: 'desc' }, select: { id: true, title: true } }),
   ]);
   const pill = (on: boolean) =>
     `rounded-full border px-3.5 py-2 text-sm font-medium ${on ? 'border-accent bg-accent text-white' : 'border-line2 text-soft hover:text-white'}`;
@@ -29,7 +31,7 @@ export default async function AdminReviewsPage({ searchParams }: { searchParams:
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-bold text-white">Reviews</h1>
-          <p className="mt-1 text-muted">Only buyers can review. Hide anything inappropriate; hidden reviews don’t count towards ratings.</p>
+          <p className="mt-1 text-muted">Buyers review from their dashboard. Hide anything inappropriate; hidden reviews don’t count towards ratings.</p>
         </div>
         <div className="card flex items-center gap-3 px-5 py-3">
           <Stars value={summary._avg.rating ?? 0} />
@@ -37,6 +39,19 @@ export default async function AdminReviewsPage({ searchParams }: { searchParams:
           <span className="text-sm text-muted">{summary._count._all} visible</span>
         </div>
       </div>
+
+      <details className="card group p-6 [&_summary::-webkit-details-marker]:hidden">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+          <span>
+            <span className="block text-lg font-semibold text-white">Add feedback from WhatsApp</span>
+            <span className="text-sm text-muted">Customers who praised you on WhatsApp? Add their real words here (shown as “via WhatsApp”).</span>
+          </span>
+          <span className="btn btn-ghost btn-sm group-open:hidden">Open</span>
+        </summary>
+        <div className="mt-5 border-t border-line pt-5">
+          <AddFeedbackForm listings={listings} />
+        </div>
+      </details>
 
       <div className="flex flex-wrap gap-2">
         <Link href="/admin/reviews" className={pill(!show)}>All</Link>
@@ -56,8 +71,11 @@ export default async function AdminReviewsPage({ searchParams }: { searchParams:
               <p className="mt-3 flex-1 text-[15px] text-soft">{r.comment || <span className="italic text-muted">No comment</span>}</p>
               <div className="mt-4 flex flex-wrap items-end justify-between gap-3 border-t border-line pt-3">
                 <div className="text-[13px]">
-                  <div className="font-semibold text-white">{r.user.name} <span className="font-normal text-muted">· {r.user.email}</span></div>
-                  <div className="text-muted">{r.listing.title} · {formatDate(r.createdAt)}</div>
+                  <div className="font-semibold text-white">
+                    {r.user?.name ?? r.authorName}{' '}
+                    <span className="font-normal text-muted">· {r.user?.email ?? 'added from WhatsApp'}</span>
+                  </div>
+                  <div className="text-muted">{r.listing?.title ?? 'General feedback'} · {formatDate(r.createdAt)}</div>
                 </div>
                 <div className="flex gap-2">
                   <form action={toggleReviewHidden}>

@@ -7,6 +7,7 @@ import { revokeApiKey } from '@/app/actions/apikeys';
 import SubmitButton from '@/components/SubmitButton';
 import CopyButton from '@/components/CopyButton';
 import CreateKeyForm from './CreateKeyForm';
+import { SITE_URL } from '@/lib/site';
 
 export const metadata = { title: 'API' };
 
@@ -14,7 +15,7 @@ export default async function ApiPage() {
   const user = await requireUser();
   const keys = await prisma.apiKey.findMany({ where: { userId: user.id }, orderBy: { createdAt: 'desc' } });
   const active = keys.filter((k) => !k.revokedAt);
-  const base = process.env.APP_URL ?? '';
+  const base = SITE_URL;
   const example = `curl ${base}/api/v1/balance \\\n  -H "Authorization: Bearer YOUR_API_KEY"`;
 
   return (

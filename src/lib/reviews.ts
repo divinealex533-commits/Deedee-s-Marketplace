@@ -11,7 +11,17 @@ export async function ratingsByListing(listingIds: string[]): Promise<Record<str
     _avg: { rating: true },
     _count: { _all: true },
   });
-  return Object.fromEntries(rows.map((r) => [r.listingId, { avg: r._avg.rating ?? 0, count: r._count._all }]));
+  return Object.fromEntries(rows.filter((r) => r.listingId).map((r) => [r.listingId as string, { avg: r._avg.rating ?? 0, count: r._count._all }]));
+}
+
+/** Display name for any review: account name for site reviews, given name for WhatsApp feedback. */
+export function reviewAuthor(r: { user: { name: string } | null; authorName: string | null }) {
+  return reviewerName(r.user?.name ?? r.authorName ?? 'Customer');
+}
+
+/** Label under the name: where the review came from. */
+export function reviewSourceLabel(source: string) {
+  return source === 'whatsapp' ? 'via WhatsApp' : 'verified buyer';
 }
 
 /** "Ada O." — first name and last initial, so reviewers stay private. */

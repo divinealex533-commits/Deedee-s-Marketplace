@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
 import { naira } from '@/lib/format';
 import ProductCard from '@/components/ProductCard';
+import { PlatformTile } from '@/components/PlatformIcon';
 import { ratingsByListing } from '@/lib/reviews';
 
 export const metadata = { title: 'Marketplace' };
@@ -52,8 +53,8 @@ export default async function MarketplacePage({
         <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
           <Link href="/dashboard/marketplace" className={pill(!platform)}>All</Link>
           {platforms.map(({ platform: p }) => (
-            <Link key={p} href={`/dashboard/marketplace?platform=${encodeURIComponent(p)}`} className={pill(platform === p)}>
-              {p}
+            <Link key={p} href={`/dashboard/marketplace?platform=${encodeURIComponent(p)}`} className={`${pill(platform === p)} inline-flex items-center gap-2 !py-1.5 !pl-1.5`}>
+              <PlatformTile platform={p} size={24} className="!rounded-full" /> {p}
             </Link>
           ))}
         </div>

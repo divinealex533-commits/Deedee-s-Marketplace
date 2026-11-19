@@ -5,6 +5,7 @@ import { formatDate, naira } from '@/lib/format';
 import { refundOrder, resolveOrder } from '@/app/actions/admin';
 import OrderStatus from '@/components/OrderStatus';
 import SubmitButton from '@/components/SubmitButton';
+import { PlatformTile } from '@/components/PlatformIcon';
 
 export const metadata = { title: 'Orders' };
 export const dynamic = 'force-dynamic';
@@ -65,7 +66,12 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                         WhatsApp customer
                       </a>
                     </td>
-                    <td><div className="text-soft">{o.listing.title}</div><div className="text-[13px] text-muted">{o.listing.platform}</div></td>
+                    <td>
+                      <div className="flex items-center gap-2.5">
+                        <PlatformTile platform={o.listing.platform} size={30} />
+                        <div><div className="text-soft">{o.listing.title}</div><div className="text-[13px] text-muted">{o.listing.platform}</div></div>
+                      </div>
+                    </td>
                     <td className="break-all font-mono text-soft">{o.credential.login}</td>
                     <td className="text-white">{naira(o.amount)}</td>
                     <td><OrderStatus status={o.status} /></td>

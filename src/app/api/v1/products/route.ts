@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { authenticate, ok, toNaira } from '@/lib/api';
+import { SITE_URL } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   const platform = req.nextUrl.searchParams.get('platform') ?? undefined;
   const inStockOnly = req.nextUrl.searchParams.get('in_stock') === 'true';
-  const base = process.env.APP_URL ?? req.nextUrl.origin;
+  const base = SITE_URL;
 
   const listings = await prisma.listing.findMany({
     where: { active: true, ...(platform ? { platform } : {}) },

@@ -1,7 +1,8 @@
 import type { MetadataRoute } from 'next';
 
+import { SITE_URL } from '@/lib/site';
 export default function robots(): MetadataRoute.Robots {
-  const base = process.env.APP_URL ?? '';
+  const base = SITE_URL;
   return {
     rules: [{ userAgent: '*', allow: '/', disallow: ['/dashboard', '/admin', '/api/'] }],
     sitemap: base ? `${base}/sitemap.xml` : undefined,

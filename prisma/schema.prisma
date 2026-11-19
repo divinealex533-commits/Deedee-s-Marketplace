@@ -245,14 +245,18 @@ model Setting {
   updatedAt DateTime @updatedAt
 }
 
-/// A buyer's rating of a listing (one per customer per listing, editable).
+/// A customer's rating. Either written by a buyer on the site (userId set, one per listing),
+/// or real feedback the admin received on WhatsApp and added with permission (source = "whatsapp").
 model Review {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  listingId String
-  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  rating    Int
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId  String?
+  listing    Listing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  /// Name shown for feedback added by the admin (site reviews use the account name)
+  authorName String?
+  source     String   @default("site")
+  rating     Int
   comment   String   @default("")
   hidden    Boolean  @default(false)
   createdAt DateTime @default(now())

@@ -6,9 +6,10 @@ import { requireUser } from '@/lib/auth';
 import { naira } from '@/lib/format';
 import { previewLogin } from '@/lib/image';
 import ListingImage from '@/components/ListingImage';
+import { PlatformBadge } from '@/components/PlatformIcon';
 import BuyPanel from './BuyPanel';
 import Stars from '@/components/Stars';
-import { reviewerName } from '@/lib/reviews';
+import { reviewAuthor, reviewSourceLabel } from '@/lib/reviews';
 import { formatDate } from '@/lib/format';
 
 const ERRORS: Record<string, string> = {
@@ -68,7 +69,7 @@ export default async function ListingPage({
         <section className="card min-w-0 flex-[1_1_340px] overflow-hidden">
           <ListingImage id={listing.id} imageAt={listing.imageAt} platform={listing.platform} title={listing.title} className="aspect-[16/10]" />
           <div className="space-y-4 p-6">
-            <span className="badge bg-line text-soft">{listing.platform}</span>
+            <PlatformBadge platform={listing.platform} className="!text-sm" />
             <h1 className="font-display text-2xl font-bold leading-tight text-white sm:text-3xl">{listing.title}</h1>
             {summary._count._all > 0 && (
               <a href="#reviews" className="flex items-center gap-2 text-sm text-muted hover:text-white">
@@ -131,7 +132,7 @@ export default async function ListingPage({
                   <span className="text-[12px] text-muted">{formatDate(r.createdAt)}</span>
                 </div>
                 {r.comment && <p className="mt-2 text-[15px] text-soft">{r.comment}</p>}
-                <p className="mt-2 text-[13px] font-semibold text-white">{reviewerName(r.user.name)} <span className="font-normal text-success">· verified buyer</span></p>
+                <p className="mt-2 text-[13px] font-semibold text-white">{reviewAuthor(r)} <span className="font-normal text-success">· {reviewSourceLabel(r.source)}</span></p>
               </li>
             ))}
           </ul>

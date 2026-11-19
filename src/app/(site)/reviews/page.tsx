@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { BadgeCheck, MessageSquareQuote } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { formatDate } from '@/lib/format';
-import { reviewerName } from '@/lib/reviews';
+import { reviewAuthor, reviewSourceLabel } from '@/lib/reviews';
+import ReviewCarousel from '@/components/ReviewCarousel';
 import { site } from '@/lib/site';
 import Stars from '@/components/Stars';
 
@@ -32,6 +33,14 @@ export default async function ReviewsPage({ searchParams }: { searchParams: Prom
     prisma.review.aggregate({ where: { hidden: false }, _avg: { rating: true }, _count: { _all: true } }),
     prisma.review.groupBy({ by: ['rating'], where: { hidden: false }, _count: { _all: true } }),
   ]);
+  const featured = page === 1 && !stars
+    ? (await prisma.review.findMany({
+        where: { hidden: false, comment: { not: '' }, rating: { gte: 4 } },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        include: { user: { select: { name: true } }, listing: { select: { title: true } } },
+      })).map((r) => ({ id: r.id, rating: r.rating, comment: r.comment, name: reviewAuthor(r), item: r.listing?.title ?? null, source: r.source }))
+    : [];
   const avg = summary._avg.rating ?? 0;
   const count = summary._count._all;
   const byStar = (n: number) => dist.find((d) => d.rating === n)?._count._all ?? 0;
@@ -52,8 +61,14 @@ export default async function ReviewsPage({ searchParams }: { searchParams: Prom
         <p className="eyebrow mb-3">Reviews</p>
         <h1 className="font-display text-[clamp(36px,5vw,56px)] font-bold leading-tight text-white">What our buyers say</h1>
         <p className="mt-3 flex items-center gap-2 text-muted">
-          <BadgeCheck className="h-5 w-5 text-success" aria-hidden="true" /> Every review comes from a real, verified purchase.
+          <BadgeCheck className="h-5 w-5 text-success" aria-hidden="true" /> Reviews come from verified purchases or feedback customers sent us on WhatsApp.
         </p>
+
+        {featured.length > 1 && (
+          <div className="mt-10">
+            <ReviewCarousel reviews={featured} />
+          </div>
+        )}
 
         <div className="mt-10 flex flex-wrap gap-6">
           {/* Summary */}
@@ -93,9 +108,9 @@ export default async function ReviewsPage({ searchParams }: { searchParams: Prom
                     </div>
                     {r.comment && <p className="mt-3 flex-1 text-[15px] leading-relaxed text-soft">{r.comment}</p>}
                     <div className="mt-4 border-t border-line pt-3 text-sm">
-                      <span className="font-semibold text-white">{reviewerName(r.user.name)}</span>
-                      <span className="text-success"> · verified buyer</span>
-                      <div className="text-[13px] text-muted">{r.listing.platform} · {r.listing.title}</div>
+                      <span className="font-semibold text-white">{reviewAuthor(r)}</span>
+                      <span className="text-success"> · {reviewSourceLabel(r.source)}</span>
+                      {r.listing && <div className="text-[13px] text-muted">{r.listing.platform} · {r.listing.title}</div>}
                     </div>
                   </li>
                 ))}

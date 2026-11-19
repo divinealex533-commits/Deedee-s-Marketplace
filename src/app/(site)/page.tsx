@@ -5,12 +5,14 @@ import {
   Phone, ReceiptText, ShieldCheck, Sparkles, Upload, UserPlus, Wallet, Zap,
 } from 'lucide-react';
 import { prisma } from '@/lib/db';
-import { ratingsByListing, reviewerName } from '@/lib/reviews';
+import { ratingsByListing, reviewAuthor } from '@/lib/reviews';
+import ReviewCarousel from '@/components/ReviewCarousel';
 import Stars from '@/components/Stars';
 import { naira } from '@/lib/format';
 import { PLATFORMS, site, whatsappLink } from '@/lib/site';
 import ListingImage from '@/components/ListingImage';
 import ProductCard from '@/components/ProductCard';
+import { PlatformTile } from '@/components/PlatformIcon';
 import HeroSlider from '@/components/HeroSlider';
 
 // Numbers and stock refresh every 60 seconds: fast pages, quiet database.
@@ -31,9 +33,9 @@ const getHomeData = unstable_cache(
       const [ratings, latest, overall] = await Promise.all([
         ratingsByListing(listings.map((l) => l.id)),
         prisma.review.findMany({
-          where: { hidden: false, comment: { not: '' } },
+          where: { hidden: false, comment: { not: '' }, rating: { gte: 4 } },
           orderBy: { createdAt: 'desc' },
-          take: 3,
+          take: 10,
           include: { user: { select: { name: true } }, listing: { select: { title: true } } },
         }),
         prisma.review.aggregate({ where: { hidden: false }, _avg: { rating: true }, _count: { _all: true } }),
@@ -42,7 +44,7 @@ const getHomeData = unstable_cache(
         users,
         delivered,
         inStock,
-        reviews: latest.map((r) => ({ id: r.id, rating: r.rating, comment: r.comment, name: reviewerName(r.user.name), item: r.listing.title })),
+        reviews: latest.map((r) => ({ id: r.id, rating: r.rating, comment: r.comment, name: reviewAuthor(r), item: r.listing?.title ?? null, source: r.source })),
         overall: { avg: overall._avg.rating ?? 0, count: overall._count._all },
         // Dates don't survive the cache, so store the image time as a number
         listings: listings.map((l) => ({
@@ -63,6 +65,8 @@ const getHomeData = unstable_cache(
   ['home-data'],
   { revalidate: 60 },
 );
+
+const MARQUEE = PLATFORMS.filter((p) => p !== 'Other');
 
 const faqs = [
   ['How fast do I get my account?', 'Instantly. The moment you pay from your wallet, the login details appear in your dashboard. No waiting for anyone to reply.'],
@@ -158,9 +162,9 @@ export default async function HomePage() {
         <p className="mb-4 text-center text-sm font-medium uppercase tracking-[0.12em] text-muted">Accounts for every platform</p>
         <div className="fade-x overflow-hidden">
           <ul className="flex w-max animate-marquee gap-3">
-            {[...PLATFORMS, ...PLATFORMS, ...PLATFORMS, ...PLATFORMS].map((p, i) => (
-              <li key={i} aria-hidden={i >= PLATFORMS.length ? 'true' : undefined} className="flex items-center gap-2 whitespace-nowrap rounded-full border border-line2 bg-panel px-5 py-2.5 text-[15px] font-medium text-soft">
-                <BadgeCheck className="h-4 w-4 text-accent-text" aria-hidden="true" /> {p}
+            {[...MARQUEE, ...MARQUEE].map((p, i) => (
+              <li key={i} aria-hidden={i >= MARQUEE.length ? 'true' : undefined} className="flex items-center gap-2.5 whitespace-nowrap rounded-full border border-line2 bg-panel py-1.5 pl-1.5 pr-5 text-[15px] font-semibold text-soft">
+                <PlatformTile platform={p} size={30} className="!rounded-full" /> {p}
               </li>
             ))}
           </ul>
@@ -307,17 +311,8 @@ export default async function HomePage() {
             </div>
             <Link href="/reviews" className="btn btn-ghost">All reviews <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
           </div>
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {reviews.map((r) => (
-              <figure key={r.id} className="card flex flex-col p-6">
-                <Stars value={r.rating} />
-                <blockquote className="mt-4 flex-1 text-[16px] leading-relaxed text-soft">“{r.comment}”</blockquote>
-                <figcaption className="mt-5 text-sm">
-                  <span className="font-semibold text-white">{r.name}</span>
-                  <span className="text-muted"> · bought {r.item}</span>
-                </figcaption>
-              </figure>
-            ))}
+          <div className="mt-10">
+            <ReviewCarousel reviews={reviews} />
           </div>
         </section>
       )}

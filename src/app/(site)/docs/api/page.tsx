@@ -2,14 +2,14 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ArrowRight, KeyRound, ShieldCheck, Timer, Zap } from 'lucide-react';
 import CodeBlock from '@/components/CodeBlock';
-import { site, whatsappLink } from '@/lib/site';
+import { site, whatsappLink, SITE_URL } from '@/lib/site';
 
 export const metadata = {
   title: 'API documentation',
   description: `Reseller API for ${site.name}: check your balance, list products and buy accounts automatically.`,
 };
 
-const BASE = `${process.env.APP_URL ?? 'https://your-domain.com'}/api/v1`;
+const BASE = `${SITE_URL}/api/v1`;
 
 type Param = { name: string; type: string; required?: boolean; text: string };
 type Endpoint = {
@@ -63,7 +63,7 @@ const endpoints: Endpoint[] = [
       "price": 15000,
       "currency": "NGN",
       "stock": 42,
-      "image_url": "${process.env.APP_URL ?? 'https://your-domain.com'}/api/listings/clx9a2b3c0001/image?v=1795070000000",
+      "image_url": "${SITE_URL}/api/listings/clx9a2b3c0001/image?v=1795070000000",
       "created_at": "2026-11-19T08:00:00.000Z"
     }
   ]

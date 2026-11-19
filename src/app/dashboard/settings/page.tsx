@@ -4,13 +4,14 @@ import { formatDate } from '@/lib/format';
 import { prisma } from '@/lib/db';
 import CopyButton from '@/components/CopyButton';
 import ChangePasswordForm from './ChangePasswordForm';
+import { SITE_URL } from '@/lib/site';
 
 export const metadata = { title: 'Settings' };
 
 export default async function SettingsPage() {
   const user = await requireUser();
   const referrals = await prisma.user.count({ where: { referredById: user.id } });
-  const link = `${process.env.APP_URL ?? ''}/signup?ref=${user.referralCode}`;
+  const link = `${SITE_URL}/signup?ref=${user.referralCode}`;
 
   return (
     <>

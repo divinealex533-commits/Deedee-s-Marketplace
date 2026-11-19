@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { authenticate, fail, ok, toNaira } from '@/lib/api';
 import { previewLogin } from '@/lib/image';
+import { SITE_URL } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   });
   if (!l) return fail(404, 'product_not_found', 'No active product with that id.');
 
-  const base = process.env.APP_URL ?? req.nextUrl.origin;
+  const base = SITE_URL;
   const withItems = req.nextUrl.searchParams.get('items') === 'true';
   const items = withItems
     ? (

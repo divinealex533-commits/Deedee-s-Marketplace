@@ -8,6 +8,7 @@ import CopyButton from '@/components/CopyButton';
 import OrderStatus from '@/components/OrderStatus';
 import SubmitButton from '@/components/SubmitButton';
 import Stars from '@/components/Stars';
+import { PlatformTile } from '@/components/PlatformIcon';
 import ReviewForm from './ReviewForm';
 
 type Creds = { login: string; password: string; notes: string };
@@ -43,7 +44,8 @@ export default function OrderCard(props: {
   return (
     <div className="rounded-2xl border border-line bg-panel2 p-5">
       <div className="flex flex-wrap items-center gap-4">
-        <div className="min-w-0 flex-[1_1_220px]">
+        <PlatformTile platform={props.platform} size={44} />
+        <div className="min-w-0 flex-[1_1_200px]">
           <div className="font-semibold text-white">{props.title}</div>
           <div className="text-[13px] text-muted">{props.platform} · {props.amount} · {props.date}</div>
         </div>

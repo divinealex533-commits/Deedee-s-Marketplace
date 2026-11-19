@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
 import { formatDate, naira } from '@/lib/format';
 import { getReferralConfig } from '@/lib/settings';
-import { site } from '@/lib/site';
+import { site, SITE_URL } from '@/lib/site';
 import CopyButton from '@/components/CopyButton';
 import StatCard from '@/components/StatCard';
 
@@ -22,7 +22,7 @@ export default async function ReferralsPage() {
   ]);
   const earned = bonuses.reduce((a, t) => a + t.amount, 0);
   const funded = friends.filter((f) => f.referralBonusPaid).length;
-  const link = `${process.env.APP_URL ?? ''}/signup?ref=${user.referralCode}`;
+  const link = `${SITE_URL}/signup?ref=${user.referralCode}`;
   const shareText = `Buy premium accounts with instant delivery on ${site.name}. Sign up with my link: ${link}`;
 
   return (

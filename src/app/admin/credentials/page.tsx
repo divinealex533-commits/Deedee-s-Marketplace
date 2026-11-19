@@ -7,6 +7,7 @@ import { deleteCredential, updateListing } from '@/app/actions/admin';
 import SubmitButton from '@/components/SubmitButton';
 import { AddCredentialForms, CreateListingForm, ListingImageForm } from './Forms';
 import ListingImage from '@/components/ListingImage';
+import { PlatformTile } from '@/components/PlatformIcon';
 import RevealCell from './RevealCell';
 
 export const metadata = { title: 'Credentials pool' };
@@ -174,7 +175,12 @@ export default async function CredentialsPage({
               <tbody>
                 {creds.map((c) => (
                   <tr key={c.id}>
-                    <td><div className="text-white">{c.listing.title}</div><div className="text-[13px] text-muted">{c.listing.platform}</div></td>
+                    <td>
+                      <div className="flex items-center gap-2.5">
+                        <PlatformTile platform={c.listing.platform} size={30} />
+                        <div><div className="text-white">{c.listing.title}</div><div className="text-[13px] text-muted">{c.listing.platform}</div></div>
+                      </div>
+                    </td>
                     <td className="break-all font-mono text-soft">{c.login}</td>
                     <td><RevealCell id={c.id} /></td>
                     <td>

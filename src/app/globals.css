@@ -23,6 +23,18 @@ body {
   to { width: 100%; }
 }
 
+/* Product card: a light sweep crosses the image on hover */
+.shine-sweep {
+  transform: translateX(0) skewX(-12deg);
+  transition: transform 0.9s ease;
+}
+.card-shine:hover .shine-sweep {
+  transform: translateX(520%) skewX(-12deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .shine-sweep { display: none; }
+}
+
 /* Gradient headline text */
 .text-gradient {
   background: linear-gradient(100deg, #ffffff 10%, #c9beff 45%, #8b72ff 75%);
