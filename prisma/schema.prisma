@@ -98,9 +98,22 @@ model Listing {
   description String       @default("")
   price       Int
   active      Boolean      @default(true)
+  /// true: customers see each login (e.g. phone number) before buying; false: they see it partly hidden
+  showLogin   Boolean      @default(false)
+  /// Set when an image is uploaded; used to refresh cached images
+  imageAt     DateTime?
+  image       ListingImage?
   credentials Credential[]
   orders      Order[]
   createdAt   DateTime     @default(now())
+}
+
+/// Kept in its own table so listing queries don't load image bytes.
+model ListingImage {
+  listingId String  @id
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  data      Bytes
+  type      String
 }
 
 /// One account login in the pool. Password and notes are AES-256-GCM encrypted.

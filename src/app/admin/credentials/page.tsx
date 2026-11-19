@@ -4,7 +4,8 @@ import { prisma } from '@/lib/db';
 import { formatDate, naira } from '@/lib/format';
 import { deleteCredential, updateListing } from '@/app/actions/admin';
 import SubmitButton from '@/components/SubmitButton';
-import { AddCredentialForms, CreateListingForm } from './Forms';
+import { AddCredentialForms, CreateListingForm, ListingImageForm } from './Forms';
+import ListingImage from '@/components/ListingImage';
 import RevealCell from './RevealCell';
 
 export const metadata = { title: 'Credentials pool' };
@@ -85,9 +86,9 @@ export default async function CredentialsPage({
         <h2 id="listings" className="mb-4 text-lg font-semibold text-white">Listings</h2>
         {listings.length ? (
           <div className="table-wrap">
-            <table className="data-table">
+            <table className="data-table min-w-[1000px]">
               <thead>
-                <tr><th scope="col">Listing</th><th scope="col">Price (₦)</th><th scope="col">In stock</th><th scope="col">Sold</th><th scope="col">Visible</th><th scope="col"><span className="sr-only">Actions</span></th></tr>
+                <tr><th scope="col">Listing</th><th scope="col">Photo</th><th scope="col">Price (₦)</th><th scope="col">In stock</th><th scope="col">Sold</th><th scope="col">Preview</th><th scope="col">Visible</th><th scope="col"><span className="sr-only">Actions</span></th></tr>
               </thead>
               <tbody>
                 {listings.map((l) => (
@@ -95,6 +96,14 @@ export default async function CredentialsPage({
                     <td>
                       <Link href={qs({ listing: l.id, page: undefined })} className="font-medium text-white hover:text-accent-text">{l.title}</Link>
                       <div className="text-[13px] text-muted">{l.platform}</div>
+                    </td>
+                    <td>
+                      <div className="flex items-center gap-2">
+                        <div className="h-11 w-16 shrink-0 overflow-hidden rounded-lg border border-line">
+                          <ListingImage id={l.id} imageAt={l.imageAt} platform={l.platform} title={l.title} className="h-full [&_svg]:h-4 [&_svg]:w-4 [&_span]:text-[10px]" />
+                        </div>
+                        <ListingImageForm id={l.id} hasImage={Boolean(l.imageAt)} />
+                      </div>
                     </td>
                     <td>
                       <form action={updateListing} className="flex items-center gap-2">
@@ -106,6 +115,15 @@ export default async function CredentialsPage({
                     </td>
                     <td className={l._count.credentials ? 'text-success' : 'text-danger'}>{l._count.credentials}</td>
                     <td className="text-soft">{l._count.orders}</td>
+                    <td>
+                      <form action={updateListing}>
+                        <input type="hidden" name="id" value={l.id} />
+                        <input type="hidden" name="showLogin" value={String(!l.showLogin)} />
+                        <SubmitButton className={`badge cursor-pointer whitespace-nowrap ${l.showLogin ? 'bg-accent/20 text-accent-text' : 'bg-line text-soft'}`} pendingText="…">
+                          {l.showLogin ? 'Full login' : 'Partly hidden'}
+                        </SubmitButton>
+                      </form>
+                    </td>
                     <td>
                       <form action={updateListing}>
                         <input type="hidden" name="id" value={l.id} />

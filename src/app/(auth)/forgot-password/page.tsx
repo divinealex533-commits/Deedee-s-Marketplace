@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { KeyRound, Phone } from 'lucide-react';
+import IconInput from '@/components/IconInput';
 import { forgotPassword } from '@/app/actions/auth';
 import FormMessage from '@/components/FormMessage';
 import PasswordInput from '@/components/PasswordInput';
@@ -14,7 +16,7 @@ export default function ForgotPasswordPage() {
   if (step === 'done') {
     return (
       <div className="text-center">
-        <h1 className="font-display text-3xl font-bold text-white">Password updated</h1>
+        <h1 className="font-display text-[28px] font-bold text-white">Password updated</h1>
         <p className="mt-2 text-muted">{state?.ok}</p>
         <Link href="/login" className="btn btn-primary mt-7">Log in</Link>
       </div>
@@ -24,7 +26,10 @@ export default function ForgotPasswordPage() {
   return (
     <>
       <Link href="/login" className="text-sm font-semibold text-accent-text">← Back to log in</Link>
-      <h1 className="mt-4 font-display text-3xl font-bold text-white">Reset your password</h1>
+      <div className="mb-5 mt-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/15 text-accent-text">
+        <KeyRound className="h-7 w-7" aria-hidden="true" />
+      </div>
+      <h1 className="font-display text-[28px] font-bold leading-tight text-white">Reset your password</h1>
       <p className="mt-1.5 text-muted">
         {step === 'request'
           ? 'Enter the phone number on your account and we’ll text you a code.'
@@ -36,7 +41,7 @@ export default function ForgotPasswordPage() {
         {step === 'request' ? (
           <div>
             <label htmlFor="phone" className="label">Phone number</label>
-            <input id="phone" name="phone" type="tel" autoComplete="tel" required placeholder="080 0000 0000" className="input" />
+            <IconInput icon={Phone} id="phone" name="phone" type="tel" autoComplete="tel" required placeholder="080 0000 0000" />
           </div>
         ) : (
           <>

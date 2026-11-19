@@ -1,32 +1,73 @@
 import type { ReactNode } from 'react';
-import { MessageCircle, ShieldCheck, Zap } from 'lucide-react';
+import { Lock, MessageCircle, ShieldCheck, Wallet, Zap } from 'lucide-react';
 import Logo from '@/components/Logo';
 import VisitTracker from '@/components/VisitTracker';
-import { site } from '@/lib/site';
+import { site, whatsappLink } from '@/lib/site';
+
+const perks = [
+  { icon: Zap, title: 'Instant delivery', text: 'Login details land in your dashboard the second you pay.' },
+  { icon: ShieldCheck, title: 'Buyer protection', text: 'Something wrong? Report it and get refunded to your wallet.' },
+  { icon: Wallet, title: 'Simple wallet', text: 'Fund once by bank transfer, then buy in one tap.' },
+];
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-wrap">
+    <div className="relative min-h-screen overflow-hidden">
       <VisitTracker />
-      <section className="flex min-w-0 flex-[1_1_420px] flex-col gap-10 border-line bg-panel p-8 sm:p-14 lg:border-r">
-        <Logo />
-        <div className="mt-auto hidden sm:block">
-          <h2 className="font-display text-[clamp(30px,3.6vw,44px)] font-bold leading-tight text-white">
-            The safe way to buy premium accounts
+      <div aria-hidden="true" className="auth-glow pointer-events-none absolute inset-0" />
+      <div aria-hidden="true" className="auth-grid pointer-events-none absolute inset-0" />
+
+      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col gap-8 px-5 py-6 sm:py-10 lg:flex-row lg:items-center lg:gap-16">
+        {/* Brand side */}
+        <section className="lg:flex-1">
+          <Logo />
+          <h2 className="mt-8 hidden font-display text-[clamp(34px,4vw,52px)] font-bold leading-[1.05] tracking-tight text-white lg:block">
+            Premium accounts.
+            <br />
+            <span className="text-accent-text">Delivered instantly.</span>
           </h2>
-          <p className="mt-4 max-w-md text-[17px] text-muted">
-            Checked listings, wallet payments and your login details delivered instantly.
+          <p className="mt-4 hidden max-w-md text-[17px] text-muted lg:block">
+            Join buyers who get checked accounts, wallet payments and real support on WhatsApp.
           </p>
-        </div>
-        <ul className="mb-auto hidden space-y-3.5 text-[15px] text-soft sm:block">
-          <li className="flex items-center gap-3"><ShieldCheck className="h-5 w-5 text-accent-text" aria-hidden="true" />Refunds if something isn’t right</li>
-          <li className="flex items-center gap-3"><Zap className="h-5 w-5 text-accent-text" aria-hidden="true" />Instant delivery to your dashboard</li>
-          <li className="flex items-center gap-3"><MessageCircle className="h-5 w-5 text-accent-text" aria-hidden="true" />24/7 WhatsApp support: {site.whatsappDisplay}</li>
-        </ul>
-      </section>
-      <section className="flex min-w-0 flex-[1_1_420px] items-center justify-center p-6 py-12 sm:p-14">
-        <div className="w-full max-w-md">{children}</div>
-      </section>
+
+          {/* Mobile: compact perk chips */}
+          <ul className="mt-5 flex flex-wrap gap-2 lg:hidden">
+            {perks.map(({ icon: Icon, title }) => (
+              <li key={title} className="flex items-center gap-1.5 rounded-full border border-line2 bg-panel/70 px-3 py-1.5 text-[13px] text-soft">
+                <Icon className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" /> {title}
+              </li>
+            ))}
+          </ul>
+
+          {/* Desktop: full perk list */}
+          <ul className="mt-10 hidden space-y-5 lg:block">
+            {perks.map(({ icon: Icon, title, text }) => (
+              <li key={title} className="flex gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-line2 bg-panel">
+                  <Icon className="h-5 w-5 text-accent-text" aria-hidden="true" />
+                </div>
+                <div>
+                  <div className="font-semibold text-white">{title}</div>
+                  <div className="text-[15px] text-muted">{text}</div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* Form side */}
+        <section className="w-full lg:max-w-[480px]">
+          <div className="rounded-3xl border border-line2 bg-panel/85 p-6 shadow-2xl shadow-black/50 backdrop-blur-xl sm:p-8">
+            {children}
+          </div>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[13px] text-muted">
+            <span className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" aria-hidden="true" /> Encrypted &amp; secure</span>
+            <a href={whatsappLink('Hi, I need help logging in')} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-white">
+              <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" /> Help: {site.whatsappDisplay}
+            </a>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

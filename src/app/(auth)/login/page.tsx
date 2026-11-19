@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import AuthTabs from '@/components/AuthTabs';
 import LoginForm from './LoginForm';
 
 export const metadata = { title: 'Log in' };
@@ -7,10 +7,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const { next } = await searchParams;
   return (
     <>
-      <h1 className="font-display text-3xl font-bold text-white">Log in to your account</h1>
-      <p className="mt-1.5 text-muted">
-        New here? <Link href="/signup" className="font-semibold text-accent-text">Create an account</Link>
-      </p>
+      <AuthTabs active="login" />
+      <h1 className="font-display text-[28px] font-bold leading-tight text-white">Welcome back</h1>
+      <p className="mt-1.5 text-muted">Log in to see your purchases and wallet.</p>
       <LoginForm next={next ?? ''} />
     </>
   );

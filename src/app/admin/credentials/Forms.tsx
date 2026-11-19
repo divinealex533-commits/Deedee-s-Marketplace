@@ -1,16 +1,16 @@
 'use client';
 
 import { useEffect, useState, type ChangeEvent } from 'react';
-import { Upload } from 'lucide-react';
-import { addBulk, addCredential, createListing } from '@/app/actions/admin';
+import { ImagePlus, Upload } from 'lucide-react';
+import { addBulk, addCredential, createListing, setListingImage } from '@/app/actions/admin';
 import FormMessage from '@/components/FormMessage';
 import PasswordInput from '@/components/PasswordInput';
 import SubmitButton from '@/components/SubmitButton';
-import { useActionForm } from '@/components/useActionForm';
+import { compressField, useActionForm } from '@/components/useActionForm';
 import { PLATFORMS } from '@/lib/site';
 
 export function CreateListingForm() {
-  const { state, pending, onSubmit, ref } = useActionForm(createListing, { resetOnOk: true });
+  const { state, pending, onSubmit, ref } = useActionForm(createListing, { resetOnOk: true, transform: compressField('image') });
   return (
     <form ref={ref} onSubmit={onSubmit} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
@@ -31,8 +31,16 @@ export function CreateListingForm() {
       </div>
       <div>
         <label htmlFor="description" className="label">Description (optional)</label>
-        <textarea id="description" name="description" rows={2} className="input" placeholder="Followers, niche, what’s included…" />
+        <textarea id="description" name="description" rows={3} className="input" placeholder="Followers, niche, login instructions (e.g. which VPN to use)…" />
       </div>
+      <div>
+        <label htmlFor="listing-image" className="label">Photo customers see (optional)</label>
+        <input id="listing-image" name="image" type="file" accept="image/*" className="input py-2.5 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-line file:px-3 file:py-1.5 file:text-soft" />
+      </div>
+      <label className="flex cursor-pointer items-start gap-2.5 text-sm text-soft">
+        <input type="checkbox" name="showLogin" className="mt-0.5 h-[18px] w-[18px] accent-accent" />
+        <span>Show each login in full before purchase (e.g. phone numbers). Leave off to show them partly hidden.</span>
+      </label>
       <FormMessage state={state} />
       <SubmitButton pending={pending} pendingText="Creating…">Create listing</SubmitButton>
     </form>
@@ -153,5 +161,30 @@ export function AddCredentialForms({ listings, defaultListing }: { listings: { i
         <BulkForm listings={listings} defaultListing={defaultListing} />
       )}
     </>
+  );
+}
+
+/** Small "change photo" control for an existing listing. */
+export function ListingImageForm({ id, hasImage }: { id: string; hasImage: boolean }) {
+  const { state, pending, onSubmit } = useActionForm(setListingImage, { transform: compressField('image') });
+  return (
+    <form onSubmit={onSubmit} className="flex flex-wrap items-center gap-2">
+      <input type="hidden" name="id" value={id} />
+      <label className="btn btn-ghost btn-sm cursor-pointer">
+        <ImagePlus className="h-4 w-4" aria-hidden="true" /> {hasImage ? 'Change' : 'Add photo'}
+        <input
+          type="file"
+          name="image"
+          accept="image/*"
+          className="sr-only"
+          onChange={(e) => e.currentTarget.form?.requestSubmit()}
+        />
+      </label>
+      {hasImage && (
+        <button type="submit" name="remove" value="1" disabled={pending} className="text-xs text-danger hover:underline">Remove</button>
+      )}
+      {pending && <span className="text-xs text-muted">Uploading…</span>}
+      {state?.error && <span role="alert" className="text-xs text-danger">{state.error}</span>}
+    </form>
   );
 }

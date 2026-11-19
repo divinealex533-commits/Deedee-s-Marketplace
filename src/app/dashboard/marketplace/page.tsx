@@ -1,48 +1,44 @@
 import Link from 'next/link';
-import { BadgeCheck } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
 import { naira } from '@/lib/format';
-import { buy } from '@/app/actions/shop';
-import SubmitButton from '@/components/SubmitButton';
+import ListingImage from '@/components/ListingImage';
 
 export const metadata = { title: 'Marketplace' };
-
-const ERRORS: Record<string, string> = {
-  funds: 'You don’t have enough in your wallet for that. Fund your wallet and try again.',
-  stock: 'Sorry, that one just sold out. Please pick another.',
-  gone: 'That listing is no longer available.',
-  slow: 'You’re going a little fast. Wait a moment and try again.',
-};
 
 export default async function MarketplacePage({
   searchParams,
 }: {
-  searchParams: Promise<{ platform?: string; error?: string; q?: string }>;
+  searchParams: Promise<{ platform?: string; q?: string }>;
 }) {
   const user = await requireUser();
-  const { platform, error, q } = await searchParams;
+  const { platform, q } = await searchParams;
 
-  const listings = await prisma.listing.findMany({
-    where: {
-      active: true,
-      ...(platform ? { platform } : {}),
-      ...(q ? { title: { contains: q, mode: 'insensitive' as const } } : {}),
-    },
-    include: { _count: { select: { credentials: { where: { status: 'AVAILABLE' } } } } },
-    orderBy: { createdAt: 'desc' },
-  });
-  const platforms = (await prisma.listing.findMany({ where: { active: true }, select: { platform: true }, distinct: ['platform'] })).map((p) => p.platform);
+  const [listings, platforms] = await Promise.all([
+    prisma.listing.findMany({
+      where: {
+        active: true,
+        ...(platform ? { platform } : {}),
+        ...(q ? { title: { contains: q, mode: 'insensitive' as const } } : {}),
+      },
+      include: { _count: { select: { credentials: { where: { status: 'AVAILABLE' } } } } },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.listing.findMany({ where: { active: true }, select: { platform: true }, distinct: ['platform'] }),
+  ]);
+  // In-stock listings first
+  listings.sort((a, b) => Number(b._count.credentials > 0) - Number(a._count.credentials > 0));
 
   const pill = (active: boolean) =>
-    `rounded-full border px-4 py-2 text-sm font-medium transition ${active ? 'border-accent bg-accent text-white' : 'border-line2 text-soft hover:text-white'}`;
+    `shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition ${active ? 'border-accent bg-accent text-white' : 'border-line2 text-soft hover:text-white'}`;
 
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-bold text-white">Marketplace</h1>
-          <p className="mt-1 text-muted">Pay from your wallet and get your login instantly.</p>
+          <p className="mt-1 text-muted">Tap a listing to preview what’s in stock.</p>
         </div>
         <div className="rounded-xl border border-line bg-panel px-4 py-2.5 text-sm">
           <span className="text-muted">Wallet: </span>
@@ -51,16 +47,16 @@ export default async function MarketplacePage({
         </div>
       </div>
 
-      {error && ERRORS[error] && <p role="alert" className="alert-error">{ERRORS[error]}</p>}
-
-      <div className="flex flex-wrap items-center gap-2">
-        <Link href="/dashboard/marketplace" className={pill(!platform)}>All</Link>
-        {platforms.map((p) => (
-          <Link key={p} href={`/dashboard/marketplace?platform=${encodeURIComponent(p)}`} className={pill(platform === p)}>
-            {p}
-          </Link>
-        ))}
-        <form className="ml-auto w-full sm:w-64" role="search">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+          <Link href="/dashboard/marketplace" className={pill(!platform)}>All</Link>
+          {platforms.map(({ platform: p }) => (
+            <Link key={p} href={`/dashboard/marketplace?platform=${encodeURIComponent(p)}`} className={pill(platform === p)}>
+              {p}
+            </Link>
+          ))}
+        </div>
+        <form className="w-full sm:ml-auto sm:w-64" role="search">
           {platform && <input type="hidden" name="platform" value={platform} />}
           <label htmlFor="q" className="sr-only">Search listings</label>
           <input id="q" name="q" defaultValue={q} placeholder="Search listings…" className="input py-2.5" />
@@ -71,36 +67,30 @@ export default async function MarketplacePage({
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {listings.map((l) => {
             const stock = l._count.credentials;
-            const short = user.balance < l.price;
             return (
-              <div key={l.id} className="card flex flex-col gap-3 p-5">
-                <div className="flex items-center justify-between">
-                  <span className="badge bg-line text-soft">{l.platform}</span>
-                  <span className={`text-[13px] ${stock ? 'text-success' : 'text-danger'}`}>
-                    {stock ? `${stock} in stock` : 'Sold out'}
+              <Link
+                key={l.id}
+                href={`/dashboard/marketplace/${l.id}`}
+                className={`card group flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:border-line2 ${stock ? '' : 'opacity-60'}`}
+              >
+                <div className="relative">
+                  <ListingImage id={l.id} imageAt={l.imageAt} platform={l.platform} title={l.title} className="aspect-[16/9]" />
+                  <span className="badge absolute left-3 top-3 bg-ink/80 text-soft backdrop-blur">{l.platform}</span>
+                  <span className={`badge absolute right-3 top-3 backdrop-blur ${stock ? 'bg-[#0F3B2C]/90 text-success' : 'bg-[#3A1520]/90 text-danger'}`}>
+                    {stock ? `${stock} available` : 'Sold out'}
                   </span>
                 </div>
-                <h2 className="text-lg font-semibold text-white">{l.title}</h2>
-                {l.description && <p className="text-sm text-muted">{l.description}</p>}
-                <div className="flex items-center gap-1.5 text-[13px] text-muted">
-                  <BadgeCheck className="h-4 w-4 text-accent-text" aria-hidden="true" /> Checked before listing
+                <div className="flex flex-1 flex-col gap-2 p-5">
+                  <h2 className="text-lg font-semibold leading-snug text-white">{l.title}</h2>
+                  {l.description && <p className="line-clamp-2 text-sm text-muted">{l.description}</p>}
+                  <div className="mt-auto flex items-center justify-between pt-3">
+                    <span className="font-display text-2xl font-bold text-white">{naira(l.price)}</span>
+                    <span className="flex items-center gap-1 text-sm font-semibold text-accent-text">
+                      {stock ? 'Preview & buy' : 'View'} <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden="true" />
+                    </span>
+                  </div>
                 </div>
-                <div className="mt-auto flex items-center justify-between gap-3 pt-2">
-                  <span className="font-display text-2xl font-bold text-white">{naira(l.price)}</span>
-                  {stock ? (
-                    short ? (
-                      <Link href="/dashboard/wallet" className="btn btn-ghost btn-sm">Top up to buy</Link>
-                    ) : (
-                      <form action={buy}>
-                        <input type="hidden" name="listingId" value={l.id} />
-                        <SubmitButton className="btn btn-primary btn-sm px-4" pendingText="Buying…">Buy now</SubmitButton>
-                      </form>
-                    )
-                  ) : (
-                    <button type="button" disabled className="btn btn-ghost btn-sm">Sold out</button>
-                  )}
-                </div>
-              </div>
+              </Link>
             );
           })}
         </div>

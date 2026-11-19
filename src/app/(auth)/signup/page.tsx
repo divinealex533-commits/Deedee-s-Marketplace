@@ -1,4 +1,5 @@
-import Link from 'next/link';
+import AuthTabs from '@/components/AuthTabs';
+import SignupSteps from '@/components/SignupSteps';
 import SignupForm from './SignupForm';
 
 export const metadata = { title: 'Create an account' };
@@ -7,10 +8,10 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
   const { ref } = await searchParams;
   return (
     <>
-      <h1 className="font-display text-3xl font-bold text-white">Create your free account</h1>
-      <p className="mt-1.5 text-muted">
-        Already have one? <Link href="/login" className="font-semibold text-accent-text">Log in</Link>
-      </p>
+      <AuthTabs active="signup" />
+      <SignupSteps current={1} />
+      <h1 className="font-display text-[28px] font-bold leading-tight text-white">Create your free account</h1>
+      <p className="mt-1.5 text-muted">Takes less than a minute.</p>
       <SignupForm referral={ref ?? ''} />
     </>
   );

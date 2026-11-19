@@ -20,7 +20,8 @@ A marketplace for premium digital accounts. Customers sign up, verify their phon
 
 **Customer dashboard** (`/dashboard`)
 - Wallet balance, purchases and recent activity
-- Marketplace with platform filter and search; “Buy now” pays from the wallet and delivers the login instantly
+- Marketplace with listing photos, platform filter and search
+- Product page: photo, instructions, and a **preview list of every item in stock** (full login like a phone number, or partly hidden — you choose per listing). Customers tick the exact ones they want or set a quantity, see the total, and buy up to 50 at once
 - My accounts: show and copy login details, confirm “It works” or “Report a problem”
 - Wallet: shows your bank accounts (9PSB, PocketApp…) with copy buttons and a personal narration code; customer uploads a receipt screenshot (auto-compressed on their phone), sees the status of each deposit, and full transaction history
 - Support page with FAQ, and settings (change password, referral link)
@@ -29,7 +30,7 @@ A marketplace for premium digital accounts. Customers sign up, verify their phon
 - **Deposits:** every receipt with the screenshot, customer, amount, sender name and narration code. Approve the amount you actually received (credits the wallet instantly) or reject with a reason the customer sees
 - **Bank accounts:** add, hide or remove the accounts customers pay into
 - Overview: pending deposits alert, total users, new users today vs yesterday, visitors today, people online now, orders and sales today, stock, 7-day sign-up chart, newest users, low-stock alerts, recent orders
-- **Credentials pool:** create listings, add one credential at a time or **paste/upload many at once** (`login:password` or `login:password:notes`, also `|` or tab). Duplicates are skipped. Show/hide passwords, filter, search and paginate.
+- **Credentials pool:** create listings with a photo and instructions, choose whether customers see full or partly hidden previews, add one credential at a time or **paste/upload many at once** (`login:password` or `login:password:notes`, also `|` or tab). Duplicates are skipped. Show/hide passwords, filter, search and paginate.
 - Orders: filter by status, refund to wallet or mark complete
 - Users: search, add funds manually (for bank transfers), ban/unban
 

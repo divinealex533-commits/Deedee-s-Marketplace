@@ -6,6 +6,7 @@ import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
 import { decryptSecret, encryptSecret } from '@/lib/crypto';
 import { naira } from '@/lib/format';
+import { readImage } from '@/lib/image';
 import type { FormState } from './types';
 
 const kobo = (nairaValue: number) => Math.round(nairaValue * 100);
@@ -24,7 +25,19 @@ export async function createListing(_: FormState, fd: FormData): Promise<FormSta
   const parsed = listingSchema.safeParse(Object.fromEntries(fd));
   if (!parsed.success) return { error: parsed.error.issues[0]!.message };
   const { platform, title, description, price } = parsed.data;
-  await prisma.listing.create({ data: { platform, title, description, price: kobo(price) } });
+  const img = await readImage(fd.get('image'), 3 * 1024 * 1024);
+  if ('error' in img) return { error: img.error };
+
+  await prisma.listing.create({
+    data: {
+      platform,
+      title,
+      description,
+      price: kobo(price),
+      showLogin: fd.get('showLogin') === 'on',
+      ...(img.image ? { imageAt: new Date(), image: { create: img.image } } : {}),
+    },
+  });
   revalidatePath('/admin/credentials');
   return { ok: `Listing “${title}” created. Now add credentials to it.` };
 }
@@ -33,11 +46,30 @@ export async function updateListing(fd: FormData) {
   await requireAdmin();
   const id = String(fd.get('id'));
   const price = Number(fd.get('price'));
-  const data: { price?: number; active?: boolean } = {};
+  const data: { price?: number; active?: boolean; showLogin?: boolean } = {};
   if (Number.isFinite(price) && price > 0) data.price = kobo(price);
   if (fd.has('active')) data.active = fd.get('active') === 'true';
+  if (fd.has('showLogin')) data.showLogin = fd.get('showLogin') === 'true';
   await prisma.listing.update({ where: { id }, data });
   revalidatePath('/admin/credentials');
+}
+
+export async function setListingImage(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const listingId = String(fd.get('id') ?? '');
+  if (fd.get('remove') === '1') {
+    await prisma.listingImage.deleteMany({ where: { listingId } });
+    await prisma.listing.update({ where: { id: listingId }, data: { imageAt: null } });
+    revalidatePath('/admin/credentials');
+    return { ok: 'Image removed.' };
+  }
+  const img = await readImage(fd.get('image'), 3 * 1024 * 1024);
+  if ('error' in img) return { error: img.error };
+  if (!img.image) return { error: 'Choose an image.' };
+  await prisma.listingImage.upsert({ where: { listingId }, create: { listingId, ...img.image }, update: img.image });
+  await prisma.listing.update({ where: { id: listingId }, data: { imageAt: new Date() } });
+  revalidatePath('/admin/credentials');
+  return { ok: 'Image updated.' };
 }
 
 // ── Credentials pool ─────────────────────────────────

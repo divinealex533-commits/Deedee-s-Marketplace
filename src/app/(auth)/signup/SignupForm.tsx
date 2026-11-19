@@ -2,8 +2,10 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { ArrowRight, Gift, Mail, Phone, ShoppingBag, Store, User } from 'lucide-react';
 import { signup } from '@/app/actions/auth';
 import FormMessage from '@/components/FormMessage';
+import IconInput from '@/components/IconInput';
 import PasswordInput from '@/components/PasswordInput';
 import SubmitButton from '@/components/SubmitButton';
 import { useActionForm } from '@/components/useActionForm';
@@ -24,27 +26,35 @@ export default function SignupForm({ referral }: { referral: string }) {
   const { state, pending, onSubmit } = useActionForm(signup);
   const [type, setType] = useState<'BUYER' | 'SELLER'>('BUYER');
   const [pw, setPw] = useState('');
+  const [showRef, setShowRef] = useState(Boolean(referral));
   const s = pw ? score(pw) : 0;
 
   return (
-    <form onSubmit={onSubmit} className="mt-7 space-y-4">
+    <form onSubmit={onSubmit} className="mt-6 space-y-4">
       <fieldset>
         <legend className="label">I want to</legend>
         <input type="hidden" name="accountType" value={type} />
         <div className="grid grid-cols-2 gap-2.5">
           {([
-            ['BUYER', 'Buy accounts', 'Browse and purchase'],
-            ['SELLER', 'Sell accounts', 'List and get paid'],
-          ] as const).map(([value, title, sub]) => (
+            ['BUYER', 'Buy', 'Browse & purchase', ShoppingBag],
+            ['SELLER', 'Sell', 'List & get paid', Store],
+          ] as const).map(([value, title, sub, Icon]) => (
             <button
               key={value}
               type="button"
               aria-pressed={type === value}
               onClick={() => setType(value)}
-              className={`rounded-xl border-2 bg-panel2 p-3.5 text-left transition ${type === value ? 'border-accent' : 'border-line2 hover:border-placeholder'}`}
+              className={`flex items-center gap-3 rounded-2xl border-2 p-3 text-left transition ${
+                type === value ? 'border-accent bg-accent/10' : 'border-line2 bg-panel2 hover:border-placeholder'
+              }`}
             >
-              <span className="block text-[15px] font-semibold text-white">{title}</span>
-              <span className="text-[13px] text-muted">{sub}</span>
+              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${type === value ? 'bg-accent text-white' : 'bg-line text-soft'}`}>
+                <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
+              </span>
+              <span>
+                <span className="block text-[15px] font-semibold text-white">{title}</span>
+                <span className="text-[12px] text-muted">{sub}</span>
+              </span>
             </button>
           ))}
         </div>
@@ -52,49 +62,57 @@ export default function SignupForm({ referral }: { referral: string }) {
 
       <div>
         <label htmlFor="name" className="label">Full name</label>
-        <input id="name" name="name" autoComplete="name" required className="input" />
+        <IconInput icon={User} id="name" name="name" autoComplete="name" required placeholder="Your full name" />
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="email" className="label">Email</label>
-          <input id="email" name="email" type="email" autoComplete="email" required placeholder="you@example.com" className="input" />
-        </div>
-        <div>
-          <label htmlFor="phone" className="label">Phone number</label>
-          <input id="phone" name="phone" type="tel" autoComplete="tel" required placeholder="080 0000 0000" className="input" />
-        </div>
+      <div>
+        <label htmlFor="email" className="label">Email</label>
+        <IconInput icon={Mail} id="email" name="email" type="email" autoComplete="email" required placeholder="you@example.com" />
+      </div>
+      <div>
+        <label htmlFor="phone" className="label">Phone number</label>
+        <IconInput icon={Phone} id="phone" name="phone" type="tel" autoComplete="tel" required placeholder="080 0000 0000" />
+        <p className="mt-1.5 text-[13px] text-muted">We’ll text you a code to verify it.</p>
       </div>
       <div>
         <label htmlFor="password" className="label">Password</label>
-        <PasswordInput id="password" name="password" autoComplete="new-password" required value={pw} onChange={(e) => setPw(e.target.value)} />
+        <PasswordInput id="password" name="password" autoComplete="new-password" required placeholder="Create a password" value={pw} onChange={(e) => setPw(e.target.value)} />
         <div className="mt-2 grid grid-cols-4 gap-1.5" aria-hidden="true">
           {[1, 2, 3, 4].map((i) => (
-            <span key={i} className={`h-1.5 rounded-full ${pw && i <= s ? COLORS[s] : 'bg-line'}`} />
+            <span key={i} className={`h-1.5 rounded-full transition-colors ${pw && i <= s ? COLORS[s] : 'bg-line'}`} />
           ))}
         </div>
-        <p className={`mt-1.5 text-[13px] ${pw ? TEXT[s] : 'text-muted'}`}>
-          {pw ? `${LABELS[s]} password` : LABELS[0]}
-        </p>
+        <p className={`mt-1.5 text-[13px] ${pw ? TEXT[s] : 'text-muted'}`}>{pw ? `${LABELS[s]} password` : LABELS[0]}</p>
       </div>
       <div>
         <label htmlFor="confirm" className="label">Confirm password</label>
-        <PasswordInput id="confirm" name="confirm" autoComplete="new-password" required />
+        <PasswordInput id="confirm" name="confirm" autoComplete="new-password" required placeholder="Type it again" />
       </div>
-      <div>
-        <label htmlFor="referral" className="label">Referral code (optional)</label>
-        <input id="referral" name="referral" defaultValue={referral} className="input uppercase" />
-      </div>
+
+      {showRef ? (
+        <div>
+          <label htmlFor="referral" className="label">Referral code</label>
+          <IconInput icon={Gift} id="referral" name="referral" defaultValue={referral} className="uppercase" placeholder="e.g. DD1A2B3C" />
+        </div>
+      ) : (
+        <button type="button" onClick={() => setShowRef(true)} className="flex items-center gap-1.5 text-sm font-medium text-accent-text hover:text-white">
+          <Gift className="h-4 w-4" aria-hidden="true" /> Have a referral code?
+        </button>
+      )}
+
       <label className="flex cursor-pointer items-start gap-2.5 text-sm text-soft">
         <input type="checkbox" name="agree" className="mt-0.5 h-[18px] w-[18px] accent-accent" />
         <span>
-          I agree to the <Link href="/terms" className="text-accent-text">Terms of service</Link> and{' '}
+          I agree to the <Link href="/terms" className="text-accent-text">Terms</Link> and{' '}
           <Link href="/privacy" className="text-accent-text">Privacy policy</Link>
         </span>
       </label>
       <FormMessage state={state} />
-      <SubmitButton pending={pending} className="btn btn-primary w-full py-3.5 text-base" pendingText="Creating your account…">
-        Create account
+      <SubmitButton pending={pending} className="btn btn-primary group w-full py-3.5 text-base shadow-lg shadow-accent/30" pendingText="Creating your account…">
+        Create account <ArrowRight className="h-[18px] w-[18px] transition group-hover:translate-x-0.5" aria-hidden="true" />
       </SubmitButton>
+      <p className="text-center text-sm text-muted">
+        Already have an account? <Link href="/login" className="font-semibold text-accent-text hover:text-white">Log in</Link>
+      </p>
     </form>
   );
 }

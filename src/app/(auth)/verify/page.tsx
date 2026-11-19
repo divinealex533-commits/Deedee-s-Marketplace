@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation';
+import { MessageSquareText } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { maskPhone } from '@/lib/phone';
+import SignupSteps from '@/components/SignupSteps';
 import VerifyForm from './VerifyForm';
 
 export const metadata = { title: 'Verify your phone' };
@@ -11,14 +13,13 @@ export default async function VerifyPage() {
 
   return (
     <>
-      <ol className="mb-8 flex gap-2 text-sm" aria-label="Sign-up progress">
-        <li className="flex items-center gap-2 text-white"><span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-xs font-bold">1</span>Details</li>
-        <li aria-current="step" className="flex items-center gap-2 text-white"><span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-xs font-bold">2</span>Verify</li>
-        <li className="flex items-center gap-2 text-muted"><span className="flex h-7 w-7 items-center justify-center rounded-full bg-line text-xs font-bold">3</span>Start</li>
-      </ol>
-      <h1 className="font-display text-3xl font-bold text-white">Verify your phone</h1>
+      <SignupSteps current={2} />
+      <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/15 text-accent-text">
+        <MessageSquareText className="h-7 w-7" aria-hidden="true" />
+      </div>
+      <h1 className="font-display text-[28px] font-bold leading-tight text-white">Check your phone</h1>
       <p className="mt-1.5 text-muted">
-        Enter the 6-digit code we sent by SMS to <strong className="text-white">{maskPhone(user.phone)}</strong>.
+        We sent a 6-digit code to <strong className="text-white">{maskPhone(user.phone)}</strong>.
       </p>
       <VerifyForm />
     </>

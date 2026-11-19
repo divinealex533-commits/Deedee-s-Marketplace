@@ -16,7 +16,25 @@ body {
   @apply bg-ink text-text antialiased;
 }
 
+/* Soft brand glow + faint grid behind the login / sign-up pages */
+.auth-glow {
+  background:
+    radial-gradient(640px circle at 12% 8%, rgba(98, 70, 234, 0.32), transparent 60%),
+    radial-gradient(520px circle at 92% 85%, rgba(14, 124, 74, 0.2), transparent 60%);
+}
+.auth-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(ellipse at 30% 30%, black 20%, transparent 70%);
+  mask-image: radial-gradient(ellipse at 30% 30%, black 20%, transparent 70%);
+}
+
 @layer components {
+  .input-with-icon {
+    @apply pl-11;
+  }
   .container-x {
     @apply mx-auto w-full max-w-6xl px-5 sm:px-6;
   }
