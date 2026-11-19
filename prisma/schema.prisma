@@ -41,6 +41,12 @@ enum TxType {
   ADJUSTMENT
 }
 
+enum DepositStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum TxStatus {
   PENDING
   SUCCESS
@@ -65,6 +71,7 @@ model User {
   referrals     User[]        @relation("Referrals")
   orders        Order[]
   transactions  Transaction[]
+  deposits      Deposit[]
   createdAt     DateTime      @default(now())
 
   @@index([createdAt])
@@ -156,4 +163,40 @@ model Visit {
   @@unique([visitorId, day])
   @@index([day])
   @@index([lastSeen])
+}
+
+/// A bank account customers can transfer to (e.g. 9PSB, PocketApp). Managed from Admin → Bank accounts.
+model BankAccount {
+  id            String    @id @default(cuid())
+  bankName      String
+  accountName   String
+  accountNumber String
+  active        Boolean   @default(true)
+  deposits      Deposit[]
+  createdAt     DateTime  @default(now())
+}
+
+/// A customer's "I've paid" claim with a screenshot. Admin approves it to credit the wallet.
+model Deposit {
+  id             String        @id @default(cuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id])
+  bankAccountId  String?
+  bankAccount    BankAccount?  @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
+  /// Amount the customer says they sent (kobo)
+  amount         Int
+  /// Amount actually credited after review (kobo)
+  approvedAmount Int?
+  senderName     String
+  note           String        @default("")
+  /// Screenshot, compressed in the browser before upload
+  proof          Bytes
+  proofType      String
+  status         DepositStatus @default(PENDING)
+  reviewNote     String        @default("")
+  reviewedAt     DateTime?
+  createdAt      DateTime      @default(now())
+
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
 }

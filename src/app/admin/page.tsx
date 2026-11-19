@@ -17,7 +17,7 @@ export default async function AdminOverview() {
 
   const [
     totalUsers, newToday, newYesterday, visitorsToday, onlineNow,
-    ordersToday, salesToday, salesAll, inStock, disputes, weekUsers, recentUsers, recentOrders, lowStock,
+    ordersToday, salesToday, salesAll, inStock, disputes, weekUsers, recentUsers, recentOrders, lowStock, pendingDeposits,
   ] = await Promise.all([
     prisma.user.count({ where: { role: 'USER' } }),
     prisma.user.count({ where: { role: 'USER', createdAt: { gte: today } } }),
@@ -36,6 +36,7 @@ export default async function AdminOverview() {
       where: { active: true },
       include: { _count: { select: { credentials: { where: { status: 'AVAILABLE' } } } } },
     }),
+    prisma.deposit.aggregate({ where: { status: 'PENDING' }, _count: true, _sum: { amount: true } }),
   ]);
 
   // New users per day for the last 7 days (Lagos time)
@@ -58,6 +59,12 @@ export default async function AdminOverview() {
         <h1 className="font-display text-3xl font-bold text-white">Overview</h1>
         <p className="mt-1 text-muted">What’s happening on your marketplace today.</p>
       </div>
+
+      {pendingDeposits._count > 0 && (
+        <Link href="/admin/deposits" className="block rounded-xl bg-[#3D2E0A] px-4 py-3 text-sm text-warn hover:opacity-90">
+          {pendingDeposits._count} deposit{pendingDeposits._count === 1 ? '' : 's'} ({naira(pendingDeposits._sum.amount ?? 0)}) waiting for your approval. Review now →
+        </Link>
+      )}
 
       {disputes > 0 && (
         <Link href="/admin/orders?status=DISPUTED" className="alert-error block hover:opacity-90">

@@ -150,6 +150,86 @@ export async function resolveOrder(fd: FormData) {
   revalidatePath('/admin', 'layout');
 }
 
+// ── Deposits (bank transfer + screenshot) ────────────
+
+export async function approveDeposit(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const id = String(fd.get('depositId') ?? '');
+  const amount = Number(fd.get('amount'));
+  if (!Number.isFinite(amount) || amount <= 0) return { error: 'Enter the amount you actually received.' };
+  const k = kobo(amount);
+
+  const done = await prisma.$transaction(async (tx) => {
+    // Only a PENDING deposit can be approved, so double-clicks can't credit twice.
+    const claimed = await tx.deposit.updateMany({
+      where: { id, status: 'PENDING' },
+      data: { status: 'APPROVED', approvedAmount: k, reviewedAt: new Date() },
+    });
+    if (claimed.count !== 1) return false;
+    const d = await tx.deposit.findUniqueOrThrow({ where: { id }, include: { bankAccount: true } });
+    await tx.user.update({ where: { id: d.userId }, data: { balance: { increment: k } } });
+    await tx.transaction.create({
+      data: {
+        userId: d.userId,
+        type: 'FUNDING',
+        amount: k,
+        reference: `DEP-${d.id}`,
+        description: `Bank transfer${d.bankAccount ? ` to ${d.bankAccount.bankName}` : ''}`,
+      },
+    });
+    return true;
+  });
+
+  revalidatePath('/admin', 'layout');
+  return done ? { ok: `Approved. ${naira(k)} added to the customer’s wallet.` } : { error: 'This deposit was already reviewed.' };
+}
+
+export async function rejectDeposit(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const id = String(fd.get('depositId') ?? '');
+  const reason = String(fd.get('reason') ?? '').trim().slice(0, 300) || 'We couldn’t find this payment.';
+  const r = await prisma.deposit.updateMany({
+    where: { id, status: 'PENDING' },
+    data: { status: 'REJECTED', reviewNote: reason, reviewedAt: new Date() },
+  });
+  revalidatePath('/admin', 'layout');
+  return r.count ? { ok: 'Deposit rejected. The customer will see your reason.' } : { error: 'This deposit was already reviewed.' };
+}
+
+// ── Bank accounts customers pay into ─────────────────
+
+export async function addBankAccount(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const parsed = z
+    .object({
+      bankName: z.string().trim().min(2, 'Enter the bank name.').max(60),
+      accountName: z.string().trim().min(2, 'Enter the account name.').max(100),
+      accountNumber: z.string().trim().regex(/^\d{10}$/, 'Account number must be 10 digits.'),
+    })
+    .safeParse(Object.fromEntries(fd));
+  if (!parsed.success) return { error: parsed.error.issues[0]!.message };
+  await prisma.bankAccount.create({ data: parsed.data });
+  revalidatePath('/admin/bank-accounts');
+  revalidatePath('/dashboard/wallet');
+  return { ok: `${parsed.data.bankName} account added. Customers can see it on their Wallet page now.` };
+}
+
+export async function toggleBankAccount(fd: FormData) {
+  await requireAdmin();
+  const id = String(fd.get('id'));
+  const b = await prisma.bankAccount.findUnique({ where: { id } });
+  if (b) await prisma.bankAccount.update({ where: { id }, data: { active: !b.active } });
+  revalidatePath('/admin/bank-accounts');
+  revalidatePath('/dashboard/wallet');
+}
+
+export async function deleteBankAccount(fd: FormData) {
+  await requireAdmin();
+  await prisma.bankAccount.delete({ where: { id: String(fd.get('id')) } });
+  revalidatePath('/admin/bank-accounts');
+  revalidatePath('/dashboard/wallet');
+}
+
 // ── Users ────────────────────────────────────────────
 
 export async function toggleBan(fd: FormData) {
@@ -162,7 +242,7 @@ export async function toggleBan(fd: FormData) {
   revalidatePath('/admin/users');
 }
 
-/** For payments received outside Paystack (e.g. a bank transfer to you). */
+/** Manually add money to a wallet (e.g. a payment received without a screenshot). */
 export async function creditUser(_: FormState, fd: FormData): Promise<FormState> {
   await requireAdmin();
   const userId = String(fd.get('userId') ?? '');

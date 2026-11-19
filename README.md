@@ -1,8 +1,8 @@
 # DeeDee’s Marketplace
 
-A marketplace for premium digital accounts. Customers sign up, verify their phone, fund a wallet with Paystack and buy accounts instantly. You manage everything from an admin dashboard.
+A marketplace for premium digital accounts. Customers sign up, verify their phone, fund a wallet by bank transfer (with a receipt screenshot you approve) and buy accounts instantly. You manage everything from an admin dashboard.
 
-**Built with:** Next.js 15 · React 19 · TypeScript · Tailwind CSS · Prisma · PostgreSQL · Paystack · Termii SMS
+**Built with:** Next.js 15 · React 19 · TypeScript · Tailwind CSS · Prisma · PostgreSQL · Termii SMS
 
 ## What’s inside
 
@@ -22,11 +22,13 @@ A marketplace for premium digital accounts. Customers sign up, verify their phon
 - Wallet balance, purchases and recent activity
 - Marketplace with platform filter and search; “Buy now” pays from the wallet and delivers the login instantly
 - My accounts: show and copy login details, confirm “It works” or “Report a problem”
-- Wallet: top up through Paystack (card, transfer, USSD), full transaction history
+- Wallet: shows your bank accounts (9PSB, PocketApp…) with copy buttons and a personal narration code; customer uploads a receipt screenshot (auto-compressed on their phone), sees the status of each deposit, and full transaction history
 - Support page with FAQ, and settings (change password, referral link)
 
 **Admin dashboard** (`/admin`)
-- Overview: total users, new users today vs yesterday, visitors today, people online now, orders and sales today, stock, 7-day sign-up chart, newest users, low-stock alerts, recent orders
+- **Deposits:** every receipt with the screenshot, customer, amount, sender name and narration code. Approve the amount you actually received (credits the wallet instantly) or reject with a reason the customer sees
+- **Bank accounts:** add, hide or remove the accounts customers pay into
+- Overview: pending deposits alert, total users, new users today vs yesterday, visitors today, people online now, orders and sales today, stock, 7-day sign-up chart, newest users, low-stock alerts, recent orders
 - **Credentials pool:** create listings, add one credential at a time or **paste/upload many at once** (`login:password` or `login:password:notes`, also `|` or tab). Duplicates are skipped. Show/hide passwords, filter, search and paginate.
 - Orders: filter by status, refund to wallet or mark complete
 - Users: search, add funds manually (for bank transfers), ban/unban
@@ -35,7 +37,7 @@ A marketplace for premium digital accounts. Customers sign up, verify their phon
 - Passwords hashed with bcrypt
 - Stored credentials encrypted with AES-256-GCM; only the buyer and admins can decrypt them
 - Signed, HTTP-only session cookies; admin pages checked on every request
-- Paystack payments verified on the server and by signed webhook, and credited only once
+- A deposit can only be approved once, even if you double-click; receipts are only visible to you and the customer
 - Purchases are atomic: a buyer can never be charged without getting a login, and two buyers can never get the same login
 
 ---
@@ -53,7 +55,7 @@ Fill in `.env`:
 - `DATABASE_URL`: your connection string
 - `AUTH_SECRET` and `ENCRYPTION_KEY`: run `openssl rand -base64 32` twice and paste one into each. **Keep `ENCRYPTION_KEY` safe and never change it** after adding credentials, or they can’t be read.
 - `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_PHONE`: your admin login
-- Paystack and Termii keys (optional while testing; see below)
+- Termii key (optional while testing; see below)
 
 ### 3. Run it
 ```bash
@@ -71,10 +73,8 @@ While `TERMII_API_KEY` is empty, SMS codes are printed in the terminal instead o
 2. Add every variable from your `.env` under **Environment Variables**. Set `APP_URL` to your live address (e.g. `https://deedees.vercel.app`).
 3. Deploy. To use your own domain, add it under **Settings → Domains**.
 
-### 5. Turn on payments (Paystack)
-1. Create a business account at [paystack.com](https://paystack.com) and complete verification.
-2. Copy your **Secret Key** into `PAYSTACK_SECRET_KEY` (use the test key first).
-3. In Paystack → **Settings → API Keys & Webhooks**, set the Webhook URL to `https://YOUR-DOMAIN/api/paystack/webhook`.
+### 5. Add your bank accounts
+Log in as admin → **Bank accounts** → add your 9PSB and PocketApp account numbers. Customers see them on their Wallet page straight away.
 
 ### 6. Turn on SMS (Termii)
 1. Sign up at [termii.com](https://termii.com), fund your account and register a Sender ID (e.g. `DeeDees`).
@@ -91,7 +91,9 @@ page_two:Secret987
 ```
 The listing shows as in stock straight away. Each login is sold once, oldest first.
 
-**Bank transfer customers:** Admin → Users → find them → enter the amount under “Add funds”.
+**Approving deposits:** Admin → Deposits. Open the screenshot, check your 9PSB/PocketApp app for the money (look for the customer’s narration code), then press **Approve** (change the amount first if it differs) or **Reject** with a reason.
+
+**Payments without a screenshot:** Admin → Users → find them → enter the amount under “Add funds”.
 
 **Problem reports:** they appear as a red alert on the admin overview. Refund returns the money to the customer’s wallet.
 
@@ -108,6 +110,6 @@ src/app/(auth)            sign up, login, verify, forgot password
 src/app/dashboard         customer dashboard
 src/app/admin             admin dashboard
 src/app/actions           server logic (auth, shop, wallet, admin)
-src/app/api               Paystack callback/webhook, visit counter, logout
-src/lib                   database, sessions, encryption, SMS, payments
+src/app/api               receipt images, visit counter, logout
+src/lib                   database, sessions, encryption, SMS
 ```

@@ -31,12 +31,12 @@ const features = [
   { icon: Grid2x2, title: 'Smart categories', text: 'Filter by platform to find exactly what you need.' },
   { icon: Lock, title: 'Escrow protection', text: 'Report a problem and get refunded if it doesn’t work.' },
   { icon: Star, title: 'Quality checked', text: 'Every account is checked before it goes on sale.' },
-  { icon: Wallet, title: 'Smart wallet', text: 'Top up once with Paystack and buy instantly.' },
+  { icon: Wallet, title: 'Smart wallet', text: 'Fund by bank transfer once and buy instantly.' },
 ];
 
 const steps = [
   { title: 'Create an account', text: 'Sign up and verify your phone in under a minute.' },
-  { title: 'Fund your wallet', text: 'Pay securely by card, bank transfer or USSD.' },
+  { title: 'Fund your wallet', text: 'Transfer to our bank account and upload your receipt.' },
   { title: 'Buy instantly', text: 'Pick a listing and pay from your wallet in one tap.' },
   { title: 'Get your login', text: 'Details appear in your dashboard straight away.' },
 ];

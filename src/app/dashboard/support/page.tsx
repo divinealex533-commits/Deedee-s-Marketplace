@@ -6,8 +6,9 @@ export const metadata = { title: 'Support' };
 const faqs = [
   ['How fast is delivery?', 'Instantly. Your login details appear under My accounts on your dashboard the moment you pay.'],
   ['What if an account doesn’t work?', 'Tap “Report a problem” on that order. Our team will check it and replace or refund it.'],
-  ['How do I fund my wallet?', 'Go to Wallet, enter an amount and pay by card, bank transfer or USSD through Paystack. You can also pay by bank transfer and message us on WhatsApp.'],
-  ['Is my payment safe?', 'Yes. Payments are handled by Paystack, and we never see or store your card details.'],
+  ['How do I fund my wallet?', 'Go to Wallet, transfer to one of our bank accounts, then upload a screenshot of your receipt. We credit your wallet as soon as we confirm it, usually within minutes.'],
+  ['How long does approval take?', 'Usually a few minutes during the day. If it’s taking long, message us on WhatsApp with your narration code.'],
+  ['My deposit was rejected. What now?', 'Check the reason shown on your Wallet page. If you did pay, send a clearer screenshot or message us on WhatsApp.'],
   ['How do I sell my accounts?', 'Message us on WhatsApp with what you have. We’ll check the accounts and agree a price with you.'],
 ];
 
