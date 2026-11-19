@@ -39,7 +39,8 @@ export async function sendOtp(phone: string, purpose: OtpPurpose) {
       from: process.env.TERMII_SENDER_ID || 'DeeDees',
       sms: text,
       type: 'plain',
-      channel: 'generic',
+      // 'dnd' reaches numbers on Do-Not-Disturb (needs Termii to activate the DND route for you)
+      channel: process.env.TERMII_CHANNEL || 'generic',
     }),
   });
   if (!res.ok) console.error('Termii SMS failed', res.status, await res.text().catch(() => ''));
