@@ -9,9 +9,12 @@ export const site = {
     'Buy premium social media accounts safely. Pay by bank transfer or wallet, with fast delivery to your dashboard.',
   whatsapp: '2349035206681',
   whatsappDisplay: '09035206681',
+  telegram: 'deedeesmarketsupport',
   phone: '+2347046019436',
   phoneDisplay: '07046019436',
 };
+
+export const telegramLink = 'https://t.me/deedeesmarketsupport';
 
 export const whatsappLink = (text?: string) =>
   `https://wa.me/${site.whatsapp}${text ? `?text=${encodeURIComponent(text)}` : ''}`;

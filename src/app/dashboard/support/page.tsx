@@ -1,5 +1,6 @@
 import { MessageCircle, Phone } from 'lucide-react';
-import { site, whatsappLink } from '@/lib/site';
+import { site, telegramLink, whatsappLink } from '@/lib/site';
+import { SiTelegram } from 'react-icons/si';
 
 export const metadata = { title: 'Support' };
 
@@ -17,7 +18,7 @@ export default function SupportPage() {
     <>
       <div>
         <h1 className="font-display text-3xl font-bold text-white">Support</h1>
-        <p className="mt-1 text-muted">We reply fast on WhatsApp, any time of day.</p>
+        <p className="mt-1 text-muted">Message us on WhatsApp or Telegram, or give us a call.</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <a href={whatsappLink('Hello, I need help with my account')} target="_blank" rel="noopener noreferrer" className="card flex items-center gap-4 p-6 hover:border-line2">
@@ -27,6 +28,15 @@ export default function SupportPage() {
           <div>
             <div className="text-lg font-semibold text-white">Chat on WhatsApp</div>
             <div className="text-muted">{site.whatsappDisplay}</div>
+          </div>
+        </a>
+        <a href={telegramLink} target="_blank" rel="noopener noreferrer" className="card flex items-center gap-4 p-6 hover:border-line2">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#229ED9]">
+            <SiTelegram className="h-7 w-7 text-white" aria-hidden="true" />
+          </div>
+          <div>
+            <div className="text-lg font-semibold text-white">Chat on Telegram</div>
+            <div className="text-muted">@{site.telegram}</div>
           </div>
         </a>
         <a href={`tel:${site.phone}`} className="card flex items-center gap-4 p-6 hover:border-line2">

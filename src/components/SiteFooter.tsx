@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { site, whatsappLink } from '@/lib/site';
+import { site, telegramLink, whatsappLink } from '@/lib/site';
 
 export default function SiteFooter() {
   return (
@@ -25,6 +25,7 @@ export default function SiteFooter() {
             <h3 className="mb-3 font-semibold text-white">Support</h3>
             <ul className="space-y-2 text-muted">
               <li><a href={whatsappLink()} className="hover:text-white">WhatsApp: {site.whatsappDisplay}</a></li>
+              <li><a href={telegramLink} target="_blank" rel="noopener noreferrer" className="hover:text-white">Telegram: @{site.telegram}</a></li>
               <li><a href={`tel:${site.phone}`} className="hover:text-white">Call: {site.phoneDisplay}</a></li>
               <li><Link href="/terms" className="hover:text-white">Terms of service</Link></li>
               <li><Link href="/privacy" className="hover:text-white">Privacy policy</Link></li>

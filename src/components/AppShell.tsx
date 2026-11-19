@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import Logo from './Logo';
 import SideNav, { type NavItem } from './SideNav';
 import { logout } from '@/app/actions/auth';
-import { site, whatsappLink } from '@/lib/site';
+import { site, telegramLink, whatsappLink } from '@/lib/site';
 import Link from 'next/link';
 import { initials, naira } from '@/lib/format';
 
@@ -38,6 +38,7 @@ export default function AppShell({
           <div className="rounded-xl border border-line p-4 text-sm text-muted">
             <div className="mb-1.5 font-semibold text-white">Need help?</div>
             <a href={whatsappLink()} className="block hover:text-white">WhatsApp: {site.whatsappDisplay}</a>
+            <a href={telegramLink} target="_blank" rel="noopener noreferrer" className="block hover:text-white">Telegram: @{site.telegram}</a>
             <a href={`tel:${site.phone}`} className="block hover:text-white">Call: {site.phoneDisplay}</a>
           </div>
           <form action={logout}>
