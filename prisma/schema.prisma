@@ -24,7 +24,18 @@ enum OtpPurpose {
 
 enum CredentialStatus {
   AVAILABLE
+  /// Held for a checkout that is waiting for payment / approval
+  RESERVED
   SOLD
+}
+
+enum CheckoutStatus {
+  AWAITING_PAYMENT
+  UNDER_REVIEW
+  COMPLETED
+  REJECTED
+  EXPIRED
+  CANCELLED
 }
 
 enum OrderStatus {
@@ -77,6 +88,7 @@ model User {
   transactions  Transaction[]
   deposits      Deposit[]
   apiKeys       ApiKey[]
+  checkouts     Checkout[]
   createdAt     DateTime      @default(now())
 
   @@index([createdAt])
@@ -109,6 +121,7 @@ model Listing {
   imageAt     DateTime?
   image       ListingImage?
   reviews     Review[]
+  checkouts   Checkout[]
   credentials Credential[]
   orders      Order[]
   createdAt   DateTime     @default(now())
@@ -132,6 +145,8 @@ model Credential {
   previewUrl String?
   secretEnc String
   status    CredentialStatus @default(AVAILABLE)
+  checkoutId String?
+  checkout  Checkout?        @relation(fields: [checkoutId], references: [id], onDelete: SetNull)
   order     Order?
   createdAt DateTime         @default(now())
 
@@ -147,6 +162,8 @@ model Order {
   credentialId String      @unique
   credential   Credential  @relation(fields: [credentialId], references: [id])
   amount       Int
+  checkoutId   String?
+  checkout     Checkout?   @relation(fields: [checkoutId], references: [id], onDelete: SetNull)
   status       OrderStatus @default(ESCROW)
   confirmedAt  DateTime?
   createdAt    DateTime    @default(now())
@@ -194,6 +211,7 @@ model BankAccount {
   accountNumber String
   active        Boolean   @default(true)
   deposits      Deposit[]
+  checkouts     Checkout[]
   createdAt     DateTime  @default(now())
 }
 
@@ -265,4 +283,35 @@ model Review {
   @@unique([userId, listingId])
   @@index([listingId, hidden])
   @@index([createdAt])
+}
+
+/// "Buy now → Checkout": the customer pays this order by bank transfer and uploads a receipt.
+/// The chosen logins are RESERVED until payment is approved (then SOLD) or the checkout ends.
+model Checkout {
+  id            String         @id @default(cuid())
+  /// Short code the customer puts in the transfer narration, e.g. DD7K2Q
+  reference     String         @unique
+  userId        String
+  user          User           @relation(fields: [userId], references: [id])
+  listingId     String
+  listing       Listing        @relation(fields: [listingId], references: [id])
+  quantity      Int
+  unitPrice     Int
+  amount        Int
+  status        CheckoutStatus @default(AWAITING_PAYMENT)
+  bankAccountId String?
+  bankAccount   BankAccount?   @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
+  senderName    String?
+  proof         Bytes?
+  proofType     String?
+  rejectReason  String         @default("")
+  expiresAt     DateTime
+  paidAt        DateTime?
+  reviewedAt    DateTime?
+  credentials   Credential[]
+  orders        Order[]
+  createdAt     DateTime       @default(now())
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
 }

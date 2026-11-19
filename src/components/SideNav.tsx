@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Banknote, Code2, Gift, KeyRound, Landmark, Star, LayoutDashboard, LifeBuoy, Settings, ShoppingBag, ShoppingCart, Users, Wallet,
+  Banknote, Code2, CreditCard, Gift, KeyRound, Landmark, Package, Star, LayoutDashboard, LifeBuoy, Settings, ShoppingBag, ShoppingCart, Users, Wallet,
 } from 'lucide-react';
 
 const ICONS = {
@@ -19,6 +19,8 @@ const ICONS = {
   banks: Landmark,
   api: Code2,
   gift: Gift,
+  payments: CreditCard,
+  myorders: Package,
   reviews: Star,
 };
 

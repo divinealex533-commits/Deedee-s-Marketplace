@@ -51,6 +51,14 @@ A marketplace for premium digital accounts. Customers sign up, fund a wallet by 
 - Receipts: every order has a printable receipt (`/receipt/{order id}`) with Print / Save as PDF, linked from the customer’s orders and Admin → Orders
 - Reviews: buyers rate purchases (1–5 stars + comment, editable). Ratings show on product cards and pages, a public `/reviews` page with star filters, and a homepage section. Admin → Reviews to hide or delete
 
+**Checkout (buy without topping up first)**
+- Product cards: **Buy now** opens a sheet with − / + quantity and the total → **Checkout**
+- The items are reserved for 60 minutes; the checkout page shows your bank account(s), the exact amount and a reference code (copy buttons), a countdown, and a receipt upload
+- Customers can also pay instantly from their wallet on the same page
+- Admin → Payments: see the receipt, then **Approve & deliver** (logins appear in the customer’s checkout page and My orders) or reject with a reason (items go back on sale)
+- Unpaid checkouts expire automatically and release the stock
+- 9PSB generated (virtual) accounts with automatic confirmation can be added once 9PSB gives you API access
+
 **Security**
 - Passwords hashed with bcrypt
 - Stored credentials encrypted with AES-256-GCM; only the buyer and admins can decrypt them

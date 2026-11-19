@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { AlertTriangle, ArrowRight, Banknote, ExternalLink, Eye, KeyRound, Plus, ShoppingBag, UserPlus, Users } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Banknote, CreditCard, ExternalLink, Eye, KeyRound, Plus, ShoppingBag, UserPlus, Users } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { formatDate, initials, lagosDay, naira, startOfLagosDay, timeAgo } from '@/lib/format';
 import StatCard from '@/components/StatCard';
@@ -25,7 +25,7 @@ export default async function AdminOverview() {
 
   const [
     totalUsers, newToday, newYesterday, visitorsToday, onlineNow,
-    ordersToday, salesToday, salesAll, inStock, disputes, weekUsers, recentUsers, recentOrders, lowStock, pendingDeposits,
+    ordersToday, salesToday, salesAll, inStock, disputes, weekUsers, recentUsers, recentOrders, lowStock, pendingDeposits, pendingPayments,
   ] = await Promise.all([
     prisma.user.count({ where: { role: 'USER' } }),
     prisma.user.count({ where: { role: 'USER', createdAt: { gte: today } } }),
@@ -45,6 +45,7 @@ export default async function AdminOverview() {
       include: { _count: { select: { credentials: { where: { status: 'AVAILABLE' } } } } },
     }),
     prisma.deposit.aggregate({ where: { status: 'PENDING' }, _count: true, _sum: { amount: true } }),
+    prisma.checkout.aggregate({ where: { status: 'UNDER_REVIEW' }, _count: true, _sum: { amount: true } }),
   ]);
 
   // New users per day for the last 7 days (Lagos time)
@@ -84,8 +85,18 @@ export default async function AdminOverview() {
       </section>
 
       {/* Things that need you */}
-      {(pendingDeposits._count > 0 || disputes > 0) && (
+      {(pendingDeposits._count > 0 || disputes > 0 || pendingPayments._count > 0) && (
         <div className="grid gap-3 md:grid-cols-2">
+          {pendingPayments._count > 0 && (
+            <Link href="/admin/payments" className="group flex items-center gap-4 rounded-2xl border border-[#7DB8FF]/30 bg-[#10294A]/60 p-4 transition hover:bg-[#10294A]">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#7DB8FF]/15 text-[#7DB8FF]"><CreditCard className="h-5 w-5" aria-hidden="true" /></span>
+              <span className="flex-1">
+                <span className="block font-semibold text-white">{pendingPayments._count} order payment{pendingPayments._count === 1 ? '' : 's'} to approve</span>
+                <span className="text-sm text-[#7DB8FF]">{naira(pendingPayments._sum.amount ?? 0)} · customers are waiting for logins</span>
+              </span>
+              <ArrowRight className="h-5 w-5 text-[#7DB8FF] transition group-hover:translate-x-0.5" aria-hidden="true" />
+            </Link>
+          )}
           {pendingDeposits._count > 0 && (
             <Link href="/admin/deposits" className="group flex items-center gap-4 rounded-2xl border border-warn/30 bg-[#3D2E0A]/60 p-4 transition hover:bg-[#3D2E0A]">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-warn/15 text-warn"><Banknote className="h-5 w-5" aria-hidden="true" /></span>

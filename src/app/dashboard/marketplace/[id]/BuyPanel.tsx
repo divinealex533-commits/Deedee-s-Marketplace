@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Eye, Minus, Plus } from 'lucide-react';
-import { buy } from '@/app/actions/shop';
+import { beginCheckout } from '@/app/actions/checkout';
 import CopyButton from '@/components/CopyButton';
 import SubmitButton from '@/components/SubmitButton';
 import { naira } from '@/lib/format';
@@ -31,7 +31,6 @@ export default function BuyPanel({
 
   const count = selected.size || qty;
   const total = count * price;
-  const short = total > balance;
   const allShownSelected = items.length > 0 && items.slice(0, limit).every((i) => selected.has(i.id));
 
   const toggle = (id: string) =>
@@ -52,7 +51,7 @@ export default function BuyPanel({
   }
 
   return (
-    <form action={buy} className="mt-5 space-y-5">
+    <form action={beginCheckout} className="mt-5 space-y-5">
       <input type="hidden" name="listingId" value={listingId} />
       <input type="hidden" name="qty" value={count} />
       {ids.map((id) => <input key={id} type="hidden" name="ids" value={id} />)}
@@ -146,15 +145,10 @@ export default function BuyPanel({
         </div>
       </div>
 
-      {short ? (
-        <Link href="/dashboard/wallet" className="btn btn-primary w-full py-3.5 text-base">
-          Top up {naira(total - balance)} to buy
-        </Link>
-      ) : (
-        <SubmitButton className="btn btn-primary w-full py-3.5 text-base shadow-lg shadow-accent/30" pendingText="Buying…">
-          Buy now · {naira(total)}
-        </SubmitButton>
-      )}
+      <SubmitButton className="btn btn-primary w-full py-4 text-base shadow-lg shadow-accent/30" pendingText="Reserving your items…">
+        Checkout · {naira(total)}
+      </SubmitButton>
+      <p className="text-center text-[13px] text-muted">Pay by bank transfer or from your wallet on the next step. Items are held for you for 60 minutes.</p>
     </form>
   );
 }

@@ -70,7 +70,7 @@ export default async function DashboardPage({
       <section aria-labelledby="mine" className="card p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 id="mine" className="text-lg font-semibold text-white">My accounts</h2>
-          <Link href="/dashboard/marketplace" className="btn btn-ghost btn-sm">Buy more</Link>
+          <Link href="/dashboard/orders" className="btn btn-ghost btn-sm">All orders</Link>
         </div>
         {orders.length ? (
           <div className="space-y-3">

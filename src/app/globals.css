@@ -23,6 +23,11 @@ body {
   to { width: 100%; }
 }
 
+@keyframes sheetUp {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 /* Product card: a light sweep crosses the image on hover */
 .shine-sweep {
   transform: translateX(0) skewX(-12deg);

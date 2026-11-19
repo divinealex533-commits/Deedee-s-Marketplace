@@ -8,6 +8,7 @@ import { previewLogin } from '@/lib/image';
 import ListingImage from '@/components/ListingImage';
 import { PlatformBadge } from '@/components/PlatformIcon';
 import BuyPanel from './BuyPanel';
+import { expireCheckouts } from '@/lib/checkout';
 import Stars from '@/components/Stars';
 import { reviewAuthor, reviewSourceLabel } from '@/lib/reviews';
 import { formatDate } from '@/lib/format';
@@ -17,6 +18,7 @@ const ERRORS: Record<string, string> = {
   stock: 'Sorry, one or more of those just sold. Please pick again.',
   gone: 'That listing is no longer available.',
   slow: 'You’re going a little fast. Wait a moment and try again.',
+  too_many: 'You already have 3 unpaid checkouts. Finish or cancel one in My orders first.',
 };
 
 const SHOW = 200; // most items listed for picking; quantity buying still works beyond this
@@ -31,6 +33,7 @@ export default async function ListingPage({
   const user = await requireUser();
   const { id } = await params;
   const { error } = await searchParams;
+  await expireCheckouts().catch(() => 0);
 
   const listing = await prisma.listing.findFirst({
     where: { id, active: true },

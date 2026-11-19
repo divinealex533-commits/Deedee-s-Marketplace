@@ -4,6 +4,7 @@ import ListingImage from './ListingImage';
 import Stars from './Stars';
 import { PlatformBadge, platformStyle } from './PlatformIcon';
 import { naira } from '@/lib/format';
+import QuickBuy from './QuickBuy';
 
 export type ProductCardData = {
   id: string;
@@ -23,10 +24,7 @@ export default function ProductCard({ p, href }: { p: ProductCardData; href: str
   const brand = platformStyle(p.platform);
 
   return (
-    <Link
-      href={href}
-      className={`card-shine group relative block rounded-[26px] p-px transition duration-300 hover:-translate-y-1.5 ${soldOut ? 'opacity-60' : ''}`}
-    >
+    <div className={`card-shine group relative block rounded-[26px] p-px transition duration-300 hover:-translate-y-1.5 ${soldOut ? 'opacity-60' : ''}`}>
       {/* Border that lights up in the platform's colour on hover */}
       <span aria-hidden="true" className="absolute inset-0 rounded-[26px] bg-gradient-to-b from-white/15 via-line to-line transition duration-300 group-hover:opacity-0" />
       <span aria-hidden="true" className="absolute inset-0 rounded-[26px] opacity-0 transition duration-300 group-hover:opacity-100" style={{ background: `linear-gradient(160deg, ${brand.glow}, #6246EA 60%, transparent)` }} />
@@ -71,12 +69,18 @@ export default function ProductCard({ p, href }: { p: ProductCardData; href: str
               <div className="text-[11px] font-medium uppercase tracking-wider text-muted">Price</div>
               <div className="font-display text-[26px] font-bold leading-none text-white">{naira(p.price)}</div>
             </div>
-            <span className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-accent to-[#8B5CF6] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-accent/40 transition group-hover:shadow-accent/60">
-              {soldOut ? 'View' : 'Buy now'} <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden="true" />
-            </span>
+            {soldOut ? (
+              <span className="inline-flex items-center gap-1.5 rounded-xl border border-line2 px-4 py-2.5 text-sm font-semibold text-soft">
+                View <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </span>
+            ) : (
+              <QuickBuy id={p.id} title={p.title} platform={p.platform} price={p.price} stock={p.stock} />
+            )}
           </div>
         </div>
       </div>
-    </Link>
+      {/* The whole card opens the product page; the Buy now button sits above this link */}
+      <Link href={href} aria-label={`View ${p.title}`} className="absolute inset-0 z-[1] rounded-[26px]" />
+    </div>
   );
 }

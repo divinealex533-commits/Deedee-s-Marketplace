@@ -7,6 +7,7 @@ export const metadata = { title: { default: 'Admin', template: '%s · Admin' } }
 
 const items: NavItem[] = [
   { href: '/admin', label: 'Overview', icon: 'dashboard', exact: true },
+  { href: '/admin/payments', label: 'Payments', icon: 'payments' },
   { href: '/admin/deposits', label: 'Deposits', icon: 'deposits' },
   { href: '/admin/credentials', label: 'Credentials pool', icon: 'pool' },
   { href: '/admin/orders', label: 'Orders', icon: 'orders' },

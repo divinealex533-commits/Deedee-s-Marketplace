@@ -195,6 +195,8 @@ export default async function CredentialsPage({
                     <td>
                       {c.status === 'AVAILABLE' ? (
                         <span className="badge bg-[#0F3B2C] text-success">Available</span>
+                      ) : c.status === 'RESERVED' ? (
+                        <span className="badge bg-[#3D2E0A] text-warn">Reserved (checkout)</span>
                       ) : (
                         <span className="badge bg-line text-soft">Sold{c.order ? ` to ${c.order.user.name}` : ''}</span>
                       )}
