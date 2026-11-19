@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 // The preview picture shown when someone shares the site on WhatsApp, X, Facebook, etc.
-export const alt = 'DeeDee’s Marketplace: premium accounts, delivered in seconds';
+export const alt = 'DeeDee’s Marketplace: premium accounts, delivered fast';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -41,10 +41,10 @@ export default function OpengraphImage() {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontSize: 84, fontWeight: 800, lineHeight: 1.05 }}>Premium accounts,</div>
-          <div style={{ fontSize: 84, fontWeight: 800, lineHeight: 1.05, color: '#A897FF' }}>delivered in seconds.</div>
+          <div style={{ fontSize: 84, fontWeight: 800, lineHeight: 1.05, color: '#A897FF' }}>delivered fast.</div>
         </div>
         <div style={{ display: 'flex', gap: 36, fontSize: 30, color: '#C7CBDD' }}>
-          <span>Instant delivery</span>
+          <span>Fast delivery</span>
           <span style={{ color: '#6246EA' }}>•</span>
           <span>Refund protection</span>
           <span style={{ color: '#6246EA' }}>•</span>

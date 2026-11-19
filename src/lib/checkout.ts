@@ -92,15 +92,62 @@ export async function cancelCheckout(userId: string, id: string) {
   });
 }
 
+/**
+ * Holds logins for a checkout that lost its reservation (it expired before the receipt came in).
+ * Best effort: takes whatever is in stock, up to the quantity bought.
+ */
+async function topUpReservation(tx: Tx, checkoutId: string, listingId: string, quantity: number) {
+  const held = await tx.credential.count({ where: { checkoutId, status: 'RESERVED' } });
+  const missing = quantity - held;
+  if (missing <= 0) return 0;
+  const free = await tx.credential.findMany({ where: { listingId, status: 'AVAILABLE' }, orderBy: { createdAt: 'asc' }, take: missing, select: { id: true } });
+  if (!free.length) return 0;
+  const r = await tx.credential.updateMany({ where: { id: { in: free.map((c) => c.id) }, status: 'AVAILABLE' }, data: { status: 'RESERVED', checkoutId } });
+  return r.count;
+}
+
 /** Delivers the reserved logins: creates the orders and marks the logins sold. */
-async function fulfil(tx: Tx, checkoutId: string, userId: string, listingId: string, unitPrice: number) {
-  const creds = await tx.credential.findMany({ where: { checkoutId, status: 'RESERVED' }, select: { id: true } });
-  if (!creds.length) return 0;
-  await tx.credential.updateMany({ where: { id: { in: creds.map((c) => c.id) } }, data: { status: 'SOLD' } });
+async function fulfil(tx: Tx, c: { id: string; userId: string; listingId: string; unitPrice: number; quantity: number }) {
+  await topUpReservation(tx, c.id, c.listingId, c.quantity);
+  const creds = await tx.credential.findMany({ where: { checkoutId: c.id, status: 'RESERVED' }, select: { id: true }, take: c.quantity });
+  if (creds.length < c.quantity) {
+    const short = c.quantity - creds.length;
+    throw new Error(`Not enough stock to deliver this order: add ${short} more login${short === 1 ? '' : 's'} to this product, then approve again.`);
+  }
+  await tx.credential.updateMany({ where: { id: { in: creds.map((x) => x.id) } }, data: { status: 'SOLD' } });
   await tx.order.createMany({
-    data: creds.map((c) => ({ userId, listingId, credentialId: c.id, amount: unitPrice, checkoutId })),
+    data: creds.map((x) => ({ userId: c.userId, listingId: c.listingId, credentialId: x.id, amount: c.unitPrice, checkoutId: c.id })),
   });
   return creds.length;
+}
+
+/** A customer who paid after the timer ran out can still send their receipt for this long. */
+export const LATE_RECEIPT_HOURS = 48;
+
+/** Expired checkouts, and rejected ones (e.g. "screenshot unclear"), can take a new receipt for a while. */
+export function canResendReceipt(c: { status: string; expiresAt: Date; reviewedAt: Date | null }) {
+  const limit = LATE_RECEIPT_HOURS * 3600 * 1000;
+  if (c.status === 'EXPIRED') return Date.now() - c.expiresAt.getTime() < limit;
+  if (c.status === 'REJECTED') return Date.now() - (c.reviewedAt ?? c.expiresAt).getTime() < limit;
+  return false;
+}
+
+/** Moves a checkout to "under review" with the customer's receipt, re-holding stock if it had expired. */
+export async function attachReceipt(userId: string, id: string, data: { bankAccountId: string | null; senderName: string; proof: Uint8Array; proofType: string }) {
+  return prisma.$transaction(async (tx) => {
+    const c = await tx.checkout.findFirst({ where: { id, userId } });
+    if (!c) return { ok: false as const, error: 'Checkout not found.' };
+    const lateOk = canResendReceipt(c);
+    const onTime = c.status === 'AWAITING_PAYMENT';
+    if (!onTime && !lateOk) return { ok: false as const, error: 'This checkout is no longer waiting for payment. If you already paid, message us on WhatsApp with your reference.' };
+    const r = await tx.checkout.updateMany({
+      where: { id, status: c.status },
+      data: { status: 'UNDER_REVIEW', bankAccountId: data.bankAccountId, senderName: data.senderName, proof: data.proof, proofType: data.proofType, paidAt: new Date() },
+    });
+    if (r.count !== 1) return { ok: false as const, error: 'This checkout just changed. Refresh the page and try again.' };
+    if (lateOk) await topUpReservation(tx, c.id, c.listingId, c.quantity);
+    return { ok: true as const };
+  });
 }
 
 /** Admin confirms the money arrived. Works for checkouts with or without an uploaded receipt. */
@@ -109,12 +156,11 @@ export async function approveCheckout(id: string) {
     const c = await tx.checkout.findUnique({ where: { id } });
     if (!c) return { ok: false as const, error: 'Not found.' };
     const claim = await tx.checkout.updateMany({
-      where: { id, status: { in: ['UNDER_REVIEW', 'AWAITING_PAYMENT'] } },
+      where: { id, status: { in: ['UNDER_REVIEW', 'AWAITING_PAYMENT', 'EXPIRED'] } },
       data: { status: 'COMPLETED', reviewedAt: new Date(), paidAt: c.paidAt ?? new Date() },
     });
     if (claim.count !== 1) return { ok: false as const, error: 'This payment was already handled.' };
-    const delivered = await fulfil(tx, id, c.userId, c.listingId, c.unitPrice);
-    if (delivered === 0) throw new Error('The reserved logins are missing. Add stock and try again.');
+    const delivered = await fulfil(tx, c);
     return { ok: true as const, delivered };
   });
 }
@@ -122,7 +168,7 @@ export async function approveCheckout(id: string) {
 export async function rejectCheckout(id: string, reason: string) {
   return prisma.$transaction(async (tx) => {
     const r = await tx.checkout.updateMany({
-      where: { id, status: { in: ['UNDER_REVIEW', 'AWAITING_PAYMENT'] } },
+      where: { id, status: { in: ['UNDER_REVIEW', 'AWAITING_PAYMENT', 'EXPIRED'] } },
       data: { status: 'REJECTED', rejectReason: reason, reviewedAt: new Date() },
     });
     if (r.count) await release(tx, id);
@@ -137,13 +183,13 @@ export async function payCheckoutWithWallet(userId: string, id: string) {
     if (!c || c.expiresAt < new Date()) return { ok: false as const, error: 'This checkout has ended. Please start again.' };
     const debit = await tx.user.updateMany({ where: { id: userId, balance: { gte: c.amount } }, data: { balance: { decrement: c.amount } } });
     if (debit.count !== 1) return { ok: false as const, error: 'Your wallet balance is too low for this order.' };
-    await tx.checkout.update({ where: { id }, data: { status: 'COMPLETED', paidAt: new Date(), reviewedAt: new Date() } });
+    const claim = await tx.checkout.updateMany({ where: { id, status: 'AWAITING_PAYMENT' }, data: { status: 'COMPLETED', paidAt: new Date(), reviewedAt: new Date() } });
+    if (claim.count !== 1) throw new Error('This checkout was already paid.');
     const listing = await tx.listing.findUniqueOrThrow({ where: { id: c.listingId }, select: { title: true } });
     await tx.transaction.create({
       data: { userId, type: 'PURCHASE', amount: -c.amount, description: `Bought ${c.quantity} × ${listing.title}` },
     });
-    const delivered = await fulfil(tx, id, userId, c.listingId, c.unitPrice);
-    if (delivered === 0) throw new Error('Reserved logins are missing.');
+    await fulfil(tx, c);
     return { ok: true as const };
   });
 }

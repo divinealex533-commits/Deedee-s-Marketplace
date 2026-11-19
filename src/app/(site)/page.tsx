@@ -69,7 +69,7 @@ const getHomeData = unstable_cache(
 const MARQUEE = PLATFORMS.filter((p) => p !== 'Other');
 
 const faqs = [
-  ['How fast do I get my account?', 'Instantly. The moment you pay from your wallet, the login details appear in your dashboard. No waiting for anyone to reply.'],
+  ['How fast do I get my account?', 'Paying from your wallet? Your logins appear in your dashboard instantly. Paying by bank transfer? Upload your receipt at checkout and we deliver as soon as we confirm the payment, usually within minutes.'],
   ['How do I fund my wallet?', 'Transfer to our 9PSB or PocketApp account shown in your Wallet, then upload a screenshot of the receipt. We confirm it and credit you, usually within minutes.'],
   ['What if an account doesn’t work?', 'Tap “Report a problem” on the order. We check it and refund the money to your wallet if it isn’t as described.'],
   ['Can I see what I’m buying first?', 'Yes. Every listing shows a photo, instructions and a preview of each item in stock, so you can pick exactly the ones you want.'],
@@ -142,7 +142,7 @@ export default async function HomePage() {
                   </li>
                 ))}
               </ul>
-              <div className="mt-4 rounded-2xl bg-accent/15 py-3.5 text-center font-semibold text-accent-text">Buy now · instant delivery</div>
+              <div className="mt-4 rounded-2xl bg-accent/15 py-3.5 text-center font-semibold text-accent-text">Buy now · fast delivery</div>
             </div>
 
             <div className="absolute -left-4 top-24 hidden animate-float items-center gap-2 rounded-2xl border border-line2 bg-panel/95 px-4 py-3 text-sm shadow-xl shadow-black/40 backdrop-blur sm:flex">
@@ -222,8 +222,8 @@ export default async function HomePage() {
           <div className="card relative overflow-hidden p-8 md:col-span-2">
             <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-accent/25 blur-3xl" />
             <Zap className="relative h-8 w-8 text-accent-text" aria-hidden="true" />
-            <h3 className="relative mt-5 font-display text-2xl font-bold text-white">Instant, automatic delivery</h3>
-            <p className="relative mt-2 max-w-md text-[16px] text-muted">No chasing anyone. Pay from your wallet and the login is in your dashboard immediately, ready to copy.</p>
+            <h3 className="relative mt-5 font-display text-2xl font-bold text-white">Fast, automatic delivery</h3>
+            <p className="relative mt-2 max-w-md text-[16px] text-muted">No chasing anyone. Wallet payments deliver instantly, and transfer payments are delivered to your dashboard as soon as we confirm them.</p>
             <div className="relative mt-6 max-w-sm rounded-2xl border border-line2 bg-ink/70 p-4 font-mono text-sm">
               <div className="flex justify-between text-muted"><span>Login</span><span className="text-white">page•••@gmail.com</span></div>
               <div className="mt-2 flex justify-between text-muted"><span>Password</span><span className="text-white">••••••••••</span></div>
@@ -252,7 +252,7 @@ export default async function HomePage() {
             { icon: UserPlus, title: 'Create an account', text: 'Free, and takes under a minute.' },
             { icon: Landmark, title: 'Fund your wallet', text: 'Transfer and upload your receipt.' },
             { icon: Eye, title: 'Preview & pick', text: 'Choose exactly what you want.' },
-            { icon: Zap, title: 'Get your login', text: 'Delivered instantly to your dashboard.' },
+            { icon: Zap, title: 'Get your login', text: 'Delivered to your dashboard once payment is confirmed.' },
           ].map(({ icon: Icon, title, text }, i) => (
             <li key={title} className="relative text-center">
               <div className="relative mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-line2 bg-panel shadow-lg shadow-black/30">

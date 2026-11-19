@@ -23,7 +23,7 @@ export default async function ReferralsPage() {
   const earned = bonuses.reduce((a, t) => a + t.amount, 0);
   const funded = friends.filter((f) => f.referralBonusPaid).length;
   const link = `${SITE_URL}/signup?ref=${user.referralCode}`;
-  const shareText = `Buy premium accounts with instant delivery on ${site.name}. Sign up with my link: ${link}`;
+  const shareText = `Buy premium accounts with fast delivery on ${site.name}. Sign up with my link: ${link}`;
 
   return (
     <>

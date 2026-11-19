@@ -60,7 +60,7 @@ export default function ProductCard({ p, href }: { p: ProductCardData; href: str
           {p.description && <p className="line-clamp-2 text-sm leading-relaxed text-muted">{p.description}</p>}
 
           <div className="flex flex-wrap gap-1.5 pt-1">
-            <span className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2 py-1 text-[11px] font-medium text-soft"><Zap className="h-3 w-3 text-warn" aria-hidden="true" /> Instant delivery</span>
+            <span className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2 py-1 text-[11px] font-medium text-soft"><Zap className="h-3 w-3 text-warn" aria-hidden="true" /> Fast delivery</span>
             <span className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2 py-1 text-[11px] font-medium text-soft"><ShieldCheck className="h-3 w-3 text-success" aria-hidden="true" /> Protected</span>
           </div>
 

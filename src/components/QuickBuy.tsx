@@ -101,7 +101,7 @@ export default function QuickBuy({ id, title, platform, price, stock }: { id: st
             </form>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-[13px] text-muted">
               <span className="flex items-center gap-3">
-                <span className="flex items-center gap-1"><Zap className="h-3.5 w-3.5 text-warn" aria-hidden="true" /> Instant delivery</span>
+                <span className="flex items-center gap-1"><Zap className="h-3.5 w-3.5 text-warn" aria-hidden="true" /> Fast delivery</span>
                 <span className="flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5 text-success" aria-hidden="true" /> Protected</span>
               </span>
               <Link href={`/dashboard/marketplace/${id}`} className="font-medium text-accent-text hover:text-white">Pick specific items →</Link>

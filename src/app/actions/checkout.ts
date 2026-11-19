@@ -2,11 +2,10 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { prisma } from '@/lib/db';
 import { requireAdmin, requireUser } from '@/lib/auth';
 import { rateLimit } from '@/lib/ratelimit';
 import { imageType } from '@/lib/image';
-import { approveCheckout, cancelCheckout, payCheckoutWithWallet, rejectCheckout, startCheckout } from '@/lib/checkout';
+import { approveCheckout, attachReceipt, cancelCheckout, payCheckoutWithWallet, rejectCheckout, startCheckout } from '@/lib/checkout';
 import type { FormState } from './types';
 
 /** "Checkout" button: reserve the items and open the checkout page. */
@@ -41,15 +40,9 @@ export async function submitCheckoutProof(_: FormState, fd: FormData): Promise<F
   const type = imageType(buf);
   if (!type) return { error: 'The receipt must be a JPG, PNG or WebP image.' };
 
-  const c = await prisma.checkout.findFirst({ where: { id, userId: user.id } });
-  if (!c) return { error: 'Checkout not found.' };
-  if (c.status !== 'AWAITING_PAYMENT') return { error: 'This checkout is no longer waiting for payment.' };
-  if (c.expiresAt < new Date()) return { error: 'This checkout has expired. If you already paid, message us on WhatsApp with your reference.' };
-
-  await prisma.checkout.update({
-    where: { id },
-    data: { status: 'UNDER_REVIEW', bankAccountId, senderName, proof: new Uint8Array(buf), proofType: type, paidAt: new Date() },
-  });
+  if (!rateLimit(`receipt:${user.id}`, 10, 10 * 60 * 1000)) return { error: 'Too many uploads. Wait a few minutes and try again.' };
+  const r = await attachReceipt(user.id, id, { bankAccountId, senderName, proof: new Uint8Array(buf), proofType: type });
+  if (!r.ok) return { error: r.error };
   revalidatePath(`/dashboard/checkout/${id}`);
   revalidatePath('/dashboard/orders');
   return { ok: 'Receipt received! We’re confirming your payment. Your logins will appear here and in My orders once approved.' };

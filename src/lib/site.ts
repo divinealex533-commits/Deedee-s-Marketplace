@@ -6,7 +6,7 @@ export const site = {
   url: SITE_URL,
   shortName: 'DeeDee’s',
   description:
-    'Buy and sell premium digital accounts safely. Verified sellers, wallet payments and instant delivery.',
+    'Buy premium social media accounts safely. Pay by bank transfer or wallet, with fast delivery to your dashboard.',
   whatsapp: '2349035206681',
   whatsappDisplay: '09035206681',
   phone: '+2347046019436',

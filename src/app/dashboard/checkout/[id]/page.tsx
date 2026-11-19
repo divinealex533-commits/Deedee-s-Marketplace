@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { AlertTriangle, ArrowLeft, Check, CheckCircle2, Clock, Hourglass, Landmark, XCircle } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
-import { expireCheckouts, PAY_WINDOW_MINUTES } from '@/lib/checkout';
+import { canResendReceipt, expireCheckouts, PAY_WINDOW_MINUTES } from '@/lib/checkout';
 import { formatDate, naira } from '@/lib/format';
 import { site, whatsappLink } from '@/lib/site';
 import CopyButton from '@/components/CopyButton';
@@ -33,7 +33,8 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
   });
   if (!c) notFound();
 
-  const banks = c.status === 'AWAITING_PAYMENT' ? await prisma.bankAccount.findMany({ where: { active: true }, orderBy: { createdAt: 'asc' } }) : [];
+  const lateReceipt = canResendReceipt(c);
+  const banks = c.status === 'AWAITING_PAYMENT' || lateReceipt ? await prisma.bankAccount.findMany({ where: { active: true }, orderBy: { createdAt: 'asc' } }) : [];
   const reviews = c.status === 'COMPLETED'
     ? new Map((await prisma.review.findMany({ where: { userId: user.id, listingId: c.listingId }, select: { listingId: true, rating: true, comment: true } })).map((r) => [r.listingId, r]))
     : new Map();
@@ -196,9 +197,11 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
             </h2>
             <p className="mt-1 text-muted">
               {c.status === 'REJECTED'
-                ? `Reason: ${c.rejectReason}. If you did pay, message us with reference ${c.reference}.`
+                ? `Reason: ${c.rejectReason}. ${lateReceipt ? 'If you did pay, upload a clear receipt below.' : `If you did pay, message us with reference ${c.reference}.`}`
                 : c.status === 'EXPIRED'
-                  ? `No receipt was uploaded within ${PAY_WINDOW_MINUTES} minutes, so the items went back on sale. If you already paid, message us with reference ${c.reference}.`
+                  ? lateReceipt
+                    ? `No receipt was uploaded within ${PAY_WINDOW_MINUTES} minutes. Already paid? Upload your receipt below and we’ll still deliver, as long as the items are in stock.`
+                    : `No receipt was uploaded within ${PAY_WINDOW_MINUTES} minutes, so the items went back on sale. If you already paid, message us with reference ${c.reference}.`
                   : 'Nothing was charged.'}
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
@@ -206,6 +209,14 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
               <a href={whatsappLink(`Hi, about checkout ${c.reference}`)} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">WhatsApp support</a>
             </div>
           </div>
+        </section>
+      )}
+
+      {lateReceipt && (
+        <section aria-labelledby="late" className="card p-6">
+          <h2 id="late" className="mb-1 text-lg font-semibold text-white">{c.status === 'REJECTED' ? 'Send a new receipt' : `Already paid ${naira(c.amount)}?`}</h2>
+          <p className="mb-4 text-sm text-muted">Upload your transfer receipt. Reference: <span className="font-mono text-white">{c.reference}</span></p>
+          <ProofForm checkoutId={c.id} banks={banks.map((b) => ({ id: b.id, label: `${b.bankName} · ${b.accountNumber}` }))} defaultName={user.name} />
         </section>
       )}
     </>

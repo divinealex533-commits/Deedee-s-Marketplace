@@ -15,10 +15,10 @@ type Slide = {
 
 const SLIDES: Slide[] = [
   {
-    eyebrow: 'Instant delivery',
+    eyebrow: 'Fast delivery',
     icon: Zap,
-    title: (<>Premium accounts,<br /><span className="text-gradient">delivered in seconds.</span></>),
-    text: 'Fund your wallet once, preview exactly what you’re buying, and get the login the moment you pay.',
+    title: (<>Premium accounts,<br /><span className="text-gradient">delivered fast.</span></>),
+    text: 'Preview exactly what you’re buying, pay by bank transfer or wallet, and get your logins right in your dashboard.',
     cta: { href: '/signup', label: 'Create free account' },
     secondary: { href: '/#stock', label: 'Browse what’s in stock' },
   },

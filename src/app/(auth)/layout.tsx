@@ -5,7 +5,7 @@ import VisitTracker from '@/components/VisitTracker';
 import { site, whatsappLink } from '@/lib/site';
 
 const perks = [
-  { icon: Zap, title: 'Instant delivery', text: 'Login details land in your dashboard the second you pay.' },
+  { icon: Zap, title: 'Fast delivery', text: 'Login details land in your dashboard as soon as your payment is confirmed.' },
   { icon: ShieldCheck, title: 'Buyer protection', text: 'Something wrong? Report it and get refunded to your wallet.' },
   { icon: Wallet, title: 'Simple wallet', text: 'Fund once by bank transfer, then buy in one tap.' },
 ];
@@ -24,7 +24,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           <h2 className="mt-8 hidden font-display text-[clamp(34px,4vw,52px)] font-bold leading-[1.05] tracking-tight text-white lg:block">
             Premium accounts.
             <br />
-            <span className="text-accent-text">Delivered instantly.</span>
+            <span className="text-accent-text">Delivered fast.</span>
           </h2>
           <p className="mt-4 hidden max-w-md text-[17px] text-muted lg:block">
             Join buyers who get checked accounts, wallet payments and real support on WhatsApp.

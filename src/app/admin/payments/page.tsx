@@ -14,6 +14,7 @@ const FILTERS: [CheckoutStatus, string][] = [
   ['AWAITING_PAYMENT', 'Waiting for payment'],
   ['COMPLETED', 'Approved'],
   ['REJECTED', 'Rejected'],
+  ['EXPIRED', 'Expired'],
 ];
 
 export default async function PaymentsPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
@@ -92,8 +93,13 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
               </div>
 
               <div className="min-w-0 flex-[1_1_240px]">
-                {c.status === 'UNDER_REVIEW' || c.status === 'AWAITING_PAYMENT' ? (
-                  <PaymentReview checkoutId={c.id} amount={naira(c.amount)} quantity={c.quantity} />
+                {c.status === 'UNDER_REVIEW' || c.status === 'AWAITING_PAYMENT' || c.status === 'EXPIRED' ? (
+                  <>
+                    {c.status === 'EXPIRED' && <p className="mb-2 text-sm text-warn">Expired without a receipt. Approve only if the money arrived: it delivers from current stock.</p>}
+                    <PaymentReview checkoutId={c.id} amount={naira(c.amount)} quantity={c.quantity} />
+                  </>
+                ) : c.status === 'CANCELLED' ? (
+                  <div className="alert-error">Cancelled by the customer</div>
                 ) : c.status === 'COMPLETED' ? (
                   <div className="alert-ok">Approved · {c.quantity} delivered{c.reviewedAt && <span className="block text-xs opacity-80">{formatDate(c.reviewedAt)}</span>}</div>
                 ) : (

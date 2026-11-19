@@ -9,7 +9,7 @@ import Stars from '@/components/Stars';
 
 export const metadata = {
   title: 'Customer reviews',
-  description: `What real buyers say about ${site.name}. Every review is from a verified purchase.`,
+  description: `What real buyers say about ${site.name}. Reviews from verified purchases and feedback customers sent us on WhatsApp.`,
 };
 export const revalidate = 120;
 

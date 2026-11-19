@@ -4,7 +4,7 @@ import { site, whatsappLink } from '@/lib/site';
 export const metadata = { title: 'Support' };
 
 const faqs = [
-  ['How fast is delivery?', 'Instantly. Your login details appear under My accounts on your dashboard the moment you pay.'],
+  ['How fast is delivery?', 'Wallet payments deliver instantly. For bank transfers, upload your receipt at checkout and your logins appear in My orders as soon as we confirm the payment, usually within minutes.'],
   ['What if an account doesn’t work?', 'Tap “Report a problem” on that order. Our team will check it and replace or refund it.'],
   ['How do I fund my wallet?', 'Go to Wallet, transfer to one of our bank accounts, then upload a screenshot of your receipt. We credit your wallet as soon as we confirm it, usually within minutes.'],
   ['How long does approval take?', 'Usually a few minutes during the day. If it’s taking long, message us on WhatsApp with your narration code.'],

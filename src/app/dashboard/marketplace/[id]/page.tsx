@@ -93,7 +93,7 @@ export default async function ListingPage({
               </div>
             )}
             <ul className="space-y-2 border-t border-line pt-4 text-sm text-soft">
-              <li className="flex items-center gap-2"><Zap className="h-4 w-4 text-accent-text" aria-hidden="true" /> Login details delivered instantly</li>
+              <li className="flex items-center gap-2"><Zap className="h-4 w-4 text-accent-text" aria-hidden="true" /> Logins delivered to your dashboard</li>
               <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-accent-text" aria-hidden="true" /> Report a problem for a refund to your wallet</li>
               <li className="flex items-center gap-2"><BadgeCheck className="h-4 w-4 text-accent-text" aria-hidden="true" /> Checked before listing</li>
             </ul>
