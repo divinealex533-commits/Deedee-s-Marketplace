@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { CredentialStatus } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { formatDate, naira } from '@/lib/format';
 import { deleteCredential, updateListing } from '@/app/actions/admin';
@@ -18,7 +19,7 @@ export default async function CredentialsPage({
 }) {
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page) || 1);
-  const status = sp.status === 'AVAILABLE' || sp.status === 'SOLD' ? sp.status : undefined;
+  const status: CredentialStatus | undefined = sp.status === 'AVAILABLE' || sp.status === 'SOLD' ? sp.status : undefined;
 
   const listings = await prisma.listing.findMany({
     orderBy: { createdAt: 'desc' },

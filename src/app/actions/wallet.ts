@@ -55,7 +55,7 @@ export async function submitDeposit(_: FormState, fd: FormData): Promise<FormSta
       amount: amount * 100,
       senderName,
       note,
-      proof: buf,
+      proof: new Uint8Array(buf),
       proofType: type,
     },
   });
