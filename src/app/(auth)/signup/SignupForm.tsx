@@ -71,7 +71,7 @@ export default function SignupForm({ referral }: { referral: string }) {
       <div>
         <label htmlFor="phone" className="label">Phone number</label>
         <IconInput icon={Phone} id="phone" name="phone" type="tel" autoComplete="tel" required placeholder="080 0000 0000" />
-        <p className="mt-1.5 text-[13px] text-muted">We’ll text you a code to verify it.</p>
+        <p className="mt-1.5 text-[13px] text-muted">So we can reach you on WhatsApp about your orders.</p>
       </div>
       <div>
         <label htmlFor="password" className="label">Password</label>

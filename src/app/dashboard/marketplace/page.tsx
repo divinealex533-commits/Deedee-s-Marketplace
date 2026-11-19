@@ -1,9 +1,8 @@
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
 import { naira } from '@/lib/format';
-import ListingImage from '@/components/ListingImage';
+import ProductCard from '@/components/ProductCard';
 
 export const metadata = { title: 'Marketplace' };
 
@@ -64,35 +63,14 @@ export default async function MarketplacePage({
       </div>
 
       {listings.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {listings.map((l) => {
-            const stock = l._count.credentials;
-            return (
-              <Link
-                key={l.id}
-                href={`/dashboard/marketplace/${l.id}`}
-                className={`card group flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:border-line2 ${stock ? '' : 'opacity-60'}`}
-              >
-                <div className="relative">
-                  <ListingImage id={l.id} imageAt={l.imageAt} platform={l.platform} title={l.title} className="aspect-[16/9]" />
-                  <span className="badge absolute left-3 top-3 bg-ink/80 text-soft backdrop-blur">{l.platform}</span>
-                  <span className={`badge absolute right-3 top-3 backdrop-blur ${stock ? 'bg-[#0F3B2C]/90 text-success' : 'bg-[#3A1520]/90 text-danger'}`}>
-                    {stock ? `${stock} available` : 'Sold out'}
-                  </span>
-                </div>
-                <div className="flex flex-1 flex-col gap-2 p-5">
-                  <h2 className="text-lg font-semibold leading-snug text-white">{l.title}</h2>
-                  {l.description && <p className="line-clamp-2 text-sm text-muted">{l.description}</p>}
-                  <div className="mt-auto flex items-center justify-between pt-3">
-                    <span className="font-display text-2xl font-bold text-white">{naira(l.price)}</span>
-                    <span className="flex items-center gap-1 text-sm font-semibold text-accent-text">
-                      {stock ? 'Preview & buy' : 'View'} <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden="true" />
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {listings.map((l) => (
+            <ProductCard
+              key={l.id}
+              href={`/dashboard/marketplace/${l.id}`}
+              p={{ id: l.id, title: l.title, platform: l.platform, description: l.description, price: l.price, stock: l._count.credentials, imageAt: l.imageAt }}
+            />
+          ))}
         </div>
       ) : (
         <p className="card p-10 text-center text-muted">No listings here right now. Check back soon or message support.</p>

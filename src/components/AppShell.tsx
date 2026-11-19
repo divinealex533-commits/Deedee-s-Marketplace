@@ -22,11 +22,12 @@ export default function AppShell({
 }) {
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
-      <aside className="flex flex-col gap-6 border-b border-line bg-panel2 p-4 lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 lg:gap-8 lg:border-b-0 lg:border-r lg:p-5">
+      <aside className="relative flex flex-col gap-6 border-b border-line bg-gradient-to-b from-panel2 to-ink p-4 lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 lg:gap-8 lg:border-b-0 lg:border-r lg:p-5">
         <div className="flex items-center justify-between px-2">
           <Logo short href={homeHref} />
-          <span className="badge bg-line text-soft lg:hidden">{badge}</span>
+          <span className="badge bg-accent/15 text-accent-text lg:hidden">{badge}</span>
         </div>
+        <span className="hidden px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-placeholder lg:block">{badge} menu</span>
         <SideNav items={items} />
         <div className="mt-auto hidden space-y-3 lg:block">
           <div className="rounded-xl border border-line p-4 text-sm text-muted">
@@ -43,12 +44,12 @@ export default function AppShell({
       </aside>
 
       <div className="min-w-0 flex-1">
-        <header className="flex items-center justify-end gap-3 border-b border-line px-5 py-4 sm:px-8">
+        <header className="sticky top-0 z-30 flex items-center justify-end gap-3 border-b border-line bg-ink/80 px-5 py-3.5 backdrop-blur-xl sm:px-8">
           <div className="text-right">
             <div className="font-semibold text-white">{user.name}</div>
             <div className="text-[13px] text-muted">{user.email}</div>
           </div>
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-line2 font-bold text-white" aria-hidden="true">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-accent to-[#8B72FF] font-bold text-white ring-2 ring-accent/30" aria-hidden="true">
             {initials(user.name)}
           </div>
           <form action={logout} className="lg:hidden">
@@ -57,7 +58,10 @@ export default function AppShell({
             </button>
           </form>
         </header>
-        <main className="space-y-7 px-5 py-8 sm:px-8 lg:px-10">{children}</main>
+        <main className="relative space-y-7 px-5 py-8 sm:px-8 lg:px-10">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(600px_circle_at_80%_0%,rgba(98,70,234,0.12),transparent_70%)]" />
+          <div className="relative space-y-7">{children}</div>
+        </main>
       </div>
     </div>
   );

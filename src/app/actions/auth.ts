@@ -8,7 +8,6 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { createSession, destroySession, requireUser } from '@/lib/auth';
 import { normalizePhone } from '@/lib/phone';
-import { checkOtp, sendOtp } from '@/lib/otp';
 import { rateLimit } from '@/lib/ratelimit';
 import type { FormState } from './types';
 
@@ -76,35 +75,14 @@ export async function signup(_: FormState, fd: FormData): Promise<FormState> {
       phone,
       passwordHash: await bcrypt.hash(d.password, 12),
       accountType: d.accountType,
+      phoneVerified: true,
       referralCode: referralCode(),
       referredById,
     },
   });
 
-  await sendOtp(phone, 'SIGNUP');
   await createSession(user, true);
-  redirect('/verify');
-}
-
-export async function verifyPhone(_: FormState, fd: FormData): Promise<FormState> {
-  const user = await requireUser({ allowUnverified: true });
-  const code = String(fd.get('code') ?? '').replace(/\D/g, '');
-  if (code.length !== 6) return { error: 'Enter all 6 digits of the code.' };
-
-  if (!(await checkOtp(user.phone, 'SIGNUP', code))) {
-    return { error: 'That code is wrong or has expired. Check it or ask for a new one.' };
-  }
-  await prisma.user.update({ where: { id: user.id }, data: { phoneVerified: true } });
   redirect('/dashboard?welcome=1');
-}
-
-export async function resendCode(_: FormState): Promise<FormState> {
-  const user = await requireUser({ allowUnverified: true });
-  if (!rateLimit(`resend:${user.id}`, 3, 10 * 60 * 1000)) {
-    return { error: 'You’ve asked for several codes. Wait a few minutes and try again.' };
-  }
-  await sendOtp(user.phone, 'SIGNUP');
-  return { ok: 'A new code is on its way.' };
 }
 
 export async function login(_: FormState, fd: FormData): Promise<FormState> {
@@ -131,43 +109,12 @@ export async function login(_: FormState, fd: FormData): Promise<FormState> {
   await createSession(user, remember);
 
   if (user.role === 'ADMIN') redirect(next.startsWith('/admin') ? next : '/admin');
-  if (!user.phoneVerified) redirect('/verify');
   redirect(next.startsWith('/dashboard') ? next : '/dashboard');
 }
 
 export async function logout() {
   await destroySession();
   redirect('/');
-}
-
-const resetSchema = z
-  .object({ phone: z.string(), code: z.string(), password, confirm: z.string() })
-  .refine((d) => d.password === d.confirm, { message: 'The two passwords don’t match.' });
-
-export async function forgotPassword(prev: FormState, fd: FormData): Promise<FormState> {
-  const step = String(fd.get('step') ?? 'request');
-
-  if (step === 'request') {
-    const phone = normalizePhone(String(fd.get('phone') ?? ''));
-    if (!phone) return { step: 'request', error: 'Enter the phone number on your account.' };
-    if (!rateLimit(`reset:${phone}`, 3, 15 * 60 * 1000) || !rateLimit(`reset-ip:${await clientIp()}`, 10, 15 * 60 * 1000)) {
-      return { step: 'request', error: 'Too many requests. Try again in 15 minutes.' };
-    }
-    const user = await prisma.user.findUnique({ where: { phone }, select: { id: true } });
-    if (user) await sendOtp(phone, 'RESET');
-    // Same answer either way, so nobody can test which numbers have accounts.
-    return { step: 'code', phone, ok: 'If an account uses this number, we’ve sent it a 6-digit code.' };
-  }
-
-  const parsed = resetSchema.safeParse(Object.fromEntries(fd));
-  const phone = normalizePhone(String(fd.get('phone') ?? '')) ?? '';
-  if (!parsed.success) return { step: 'code', phone, error: parsed.error.issues[0]!.message };
-
-  if (!(await checkOtp(phone, 'RESET', parsed.data.code.replace(/\D/g, '')))) {
-    return { step: 'code', phone, error: 'That code is wrong or has expired.' };
-  }
-  await prisma.user.update({ where: { phone }, data: { passwordHash: await bcrypt.hash(parsed.data.password, 12) } });
-  return { step: 'done', ok: 'Password updated. You can log in with your new password.' };
 }
 
 export async function changePassword(_: FormState, fd: FormData): Promise<FormState> {

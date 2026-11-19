@@ -33,11 +33,14 @@ export default function SideNav({ items }: { items: NavItem[] }) {
             key={item.href}
             href={item.href}
             aria-current={active ? 'page' : undefined}
-            className={`flex shrink-0 items-center gap-3 rounded-xl px-3 py-3 text-[15px] font-medium transition ${
-              active ? 'bg-line text-white' : 'text-soft hover:bg-panel hover:text-white'
+            className={`relative flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium transition ${
+              active ? 'bg-gradient-to-r from-accent/25 to-accent/5 text-white' : 'text-soft hover:bg-panel hover:text-white'
             }`}
           >
-            <Icon className="h-5 w-5" aria-hidden="true" />
+            {active && <span aria-hidden="true" className="absolute inset-y-2 left-0 hidden w-1 rounded-r-full bg-accent lg:block" />}
+            <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${active ? 'bg-accent text-white shadow-lg shadow-accent/40' : 'bg-line/60'}`}>
+              <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
+            </span>
             {item.label}
           </Link>
         );

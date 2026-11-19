@@ -1,8 +1,8 @@
 # DeeDee’s Marketplace
 
-A marketplace for premium digital accounts. Customers sign up, verify their phone, fund a wallet by bank transfer (with a receipt screenshot you approve) and buy accounts instantly. You manage everything from an admin dashboard.
+A marketplace for premium digital accounts. Customers sign up, fund a wallet by bank transfer (with a receipt screenshot you approve) and buy accounts instantly. You manage everything from an admin dashboard.
 
-**Built with:** Next.js 15 · React 19 · TypeScript · Tailwind CSS · Prisma · PostgreSQL · Termii SMS
+**Built with:** Next.js 15 · React 19 · TypeScript · Tailwind CSS · Prisma · PostgreSQL
 
 ## What’s inside
 
@@ -13,10 +13,9 @@ A marketplace for premium digital accounts. Customers sign up, verify their phon
 
 **Sign up and login**
 - Sign up as buyer or seller, with password strength meter and referral codes
-- Phone verification by SMS code (6 digits, 10-minute expiry, 5 tries)
 - Login by email or phone, “keep me logged in for 30 days”
-- Forgot password by SMS code
-- Rate limiting on login, sign-up and SMS to stop abuse
+- Forgot password: customer messages you on WhatsApp; you reset it from Admin → Users (one click makes an easy password and a ready-to-send WhatsApp message)
+- Rate limiting on login and sign-up to stop abuse
 
 **Customer dashboard** (`/dashboard`)
 - Wallet balance, purchases and recent activity
@@ -56,7 +55,6 @@ Fill in `.env`:
 - `DATABASE_URL`: your connection string
 - `AUTH_SECRET` and `ENCRYPTION_KEY`: run `openssl rand -base64 32` twice and paste one into each. **Keep `ENCRYPTION_KEY` safe and never change it** after adding credentials, or they can’t be read.
 - `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_PHONE`: your admin login
-- Termii key (optional while testing; see below)
 
 ### 3. Run it
 ```bash
@@ -67,8 +65,6 @@ npm run dev         # open http://localhost:3000
 ```
 Log in with your admin email to reach `/admin`.
 
-While `TERMII_API_KEY` is empty, SMS codes are printed in the terminal instead of sent, so you can test sign-up for free.
-
 ### 4. Go live on Vercel (free)
 1. Go to [vercel.com](https://vercel.com) → **Add New Project** → import this GitHub repo.
 2. Add every variable from your `.env` under **Environment Variables**. Set `APP_URL` to your live address (e.g. `https://deedees.vercel.app`).
@@ -76,10 +72,6 @@ While `TERMII_API_KEY` is empty, SMS codes are printed in the terminal instead o
 
 ### 5. Add your bank accounts
 Log in as admin → **Bank accounts** → add your 9PSB and PocketApp account numbers. Customers see them on their Wallet page straight away.
-
-### 6. Turn on SMS (Termii)
-1. Sign up at [termii.com](https://termii.com), fund your account and register a Sender ID (e.g. `DeeDees`).
-2. Fill in `TERMII_API_KEY`, `TERMII_SENDER_ID`, and `TERMII_BASE_URL` (shown in your Termii dashboard).
 
 ---
 
@@ -112,5 +104,5 @@ src/app/dashboard         customer dashboard
 src/app/admin             admin dashboard
 src/app/actions           server logic (auth, shop, wallet, admin)
 src/app/api               receipt images, visit counter, logout
-src/lib                   database, sessions, encryption, SMS
+src/lib                   database, sessions, encryption, images
 ```

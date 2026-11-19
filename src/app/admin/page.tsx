@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { Eye, KeyRound, ShoppingBag, UserPlus, Users } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Banknote, ExternalLink, Eye, KeyRound, Plus, ShoppingBag, UserPlus, Users } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { formatDate, initials, lagosDay, naira, startOfLagosDay, timeAgo } from '@/lib/format';
 import StatCard from '@/components/StatCard';
+import { requireAdmin } from '@/lib/auth';
 import OrderStatus from '@/components/OrderStatus';
 
 export const metadata = { title: 'Overview' };
@@ -11,6 +12,11 @@ export const dynamic = 'force-dynamic';
 const DAY = 24 * 60 * 60 * 1000;
 
 export default async function AdminOverview() {
+  const admin = await requireAdmin();
+  const firstName = admin.name.split(' ')[0];
+  const hour = Number(new Date().toLocaleString('en-GB', { hour: 'numeric', hour12: false, timeZone: 'Africa/Lagos' }));
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const todayLabel = new Date().toLocaleDateString('en-NG', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Africa/Lagos' });
   const today = startOfLagosDay();
   const yesterday = new Date(today.getTime() - DAY);
   const weekStart = new Date(today.getTime() - 6 * DAY);
@@ -55,34 +61,64 @@ export default async function AdminOverview() {
 
   return (
     <>
-      <div>
-        <h1 className="font-display text-3xl font-bold text-white">Overview</h1>
-        <p className="mt-1 text-muted">What’s happening on your marketplace today.</p>
-      </div>
+      {/* Welcome banner */}
+      <section className="relative overflow-hidden rounded-3xl border border-line2 bg-gradient-to-br from-[#2A1F6B] via-panel to-panel2 p-6 sm:p-8">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-accent/40 blur-3xl" />
+        <div aria-hidden="true" className="auth-grid pointer-events-none absolute inset-0 opacity-60" />
+        <div className="relative flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <p className="text-sm font-medium text-accent-text">{greeting} · {todayLabel}</p>
+            <h1 className="mt-1 font-display text-3xl font-bold text-white sm:text-4xl">Welcome back, {firstName}</h1>
+            <p className="mt-2 text-soft">
+              {naira(salesToday._sum.amount ?? 0)} in sales today from {ordersToday} order{ordersToday === 1 ? '' : 's'} · {visitorsToday} visitor{visitorsToday === 1 ? '' : 's'}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/admin/credentials" className="btn btn-primary shadow-lg shadow-accent/30"><Plus className="h-4 w-4" aria-hidden="true" /> Add stock</Link>
+            <Link href="/admin/deposits" className="btn border border-white/15 bg-white/5 text-white backdrop-blur hover:bg-white/10"><Banknote className="h-4 w-4" aria-hidden="true" /> Deposits</Link>
+            <Link href="/" className="btn border border-white/15 bg-white/5 text-white backdrop-blur hover:bg-white/10"><ExternalLink className="h-4 w-4" aria-hidden="true" /> View site</Link>
+          </div>
+        </div>
+      </section>
 
-      {pendingDeposits._count > 0 && (
-        <Link href="/admin/deposits" className="block rounded-xl bg-[#3D2E0A] px-4 py-3 text-sm text-warn hover:opacity-90">
-          {pendingDeposits._count} deposit{pendingDeposits._count === 1 ? '' : 's'} ({naira(pendingDeposits._sum.amount ?? 0)}) waiting for your approval. Review now →
-        </Link>
-      )}
-
-      {disputes > 0 && (
-        <Link href="/admin/orders?status=DISPUTED" className="alert-error block hover:opacity-90">
-          {disputes} order{disputes === 1 ? ' has' : 's have'} a reported problem. Review now →
-        </Link>
+      {/* Things that need you */}
+      {(pendingDeposits._count > 0 || disputes > 0) && (
+        <div className="grid gap-3 md:grid-cols-2">
+          {pendingDeposits._count > 0 && (
+            <Link href="/admin/deposits" className="group flex items-center gap-4 rounded-2xl border border-warn/30 bg-[#3D2E0A]/60 p-4 transition hover:bg-[#3D2E0A]">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-warn/15 text-warn"><Banknote className="h-5 w-5" aria-hidden="true" /></span>
+              <span className="flex-1">
+                <span className="block font-semibold text-white">{pendingDeposits._count} deposit{pendingDeposits._count === 1 ? '' : 's'} to approve</span>
+                <span className="text-sm text-warn">{naira(pendingDeposits._sum.amount ?? 0)} waiting</span>
+              </span>
+              <ArrowRight className="h-5 w-5 text-warn transition group-hover:translate-x-0.5" aria-hidden="true" />
+            </Link>
+          )}
+          {disputes > 0 && (
+            <Link href="/admin/orders?status=DISPUTED" className="group flex items-center gap-4 rounded-2xl border border-danger/30 bg-[#3A1520]/60 p-4 transition hover:bg-[#3A1520]">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-danger/15 text-danger"><AlertTriangle className="h-5 w-5" aria-hidden="true" /></span>
+              <span className="flex-1">
+                <span className="block font-semibold text-white">{disputes} problem report{disputes === 1 ? '' : 's'}</span>
+                <span className="text-sm text-danger">Refund or resolve</span>
+              </span>
+              <ArrowRight className="h-5 w-5 text-danger transition group-hover:translate-x-0.5" aria-hidden="true" />
+            </Link>
+          )}
+        </div>
       )}
 
       <section aria-label="Today at a glance" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <StatCard label="Total users" value={totalUsers.toLocaleString()} icon={<Users className="h-5 w-5 text-accent-text" aria-hidden="true" />} sub={`${weekTotal} joined this week`} />
+        <StatCard label="Total users" value={totalUsers.toLocaleString()} icon={Users} tone="violet" sub={`${weekTotal} joined this week`} />
         <StatCard
           label="New users today"
           value={newToday}
-          icon={<UserPlus className="h-5 w-5 text-accent-text" aria-hidden="true" />}
-          sub={<span className={diff >= 0 ? 'text-success' : 'text-danger'}>{diff >= 0 ? '+' : ''}{diff} vs yesterday</span>}
+          icon={UserPlus}
+          tone="green"
+          sub={<span className={diff >= 0 ? 'text-success' : 'text-danger'}>{diff >= 0 ? '▲ +' : '▼ '}{diff} vs yesterday</span>}
         />
-        <StatCard label="Visitors today" value={visitorsToday} icon={<Eye className="h-5 w-5 text-accent-text" aria-hidden="true" />} sub={`${onlineNow} online now`} />
-        <StatCard label="Orders today" value={ordersToday} icon={<ShoppingBag className="h-5 w-5 text-accent-text" aria-hidden="true" />} sub={`${naira(salesToday._sum.amount ?? 0)} in sales`} />
-        <StatCard label="Credentials in stock" value={inStock.toLocaleString()} icon={<KeyRound className="h-5 w-5 text-accent-text" aria-hidden="true" />} sub={`${naira(salesAll._sum.amount ?? 0)} sold all-time`} />
+        <StatCard label="Visitors today" value={visitorsToday} icon={Eye} tone="blue" sub={<span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-success" />{onlineNow} online now</span>} />
+        <StatCard label="Sales today" value={naira(salesToday._sum.amount ?? 0)} icon={ShoppingBag} tone="pink" sub={`${ordersToday} order${ordersToday === 1 ? '' : 's'}`} />
+        <StatCard label="In stock" value={inStock.toLocaleString()} icon={KeyRound} tone="amber" sub={`${naira(salesAll._sum.amount ?? 0)} sold all-time`} />
       </section>
 
       <div className="flex flex-wrap gap-5">
@@ -96,7 +132,7 @@ export default async function AdminOverview() {
               <div key={d.key} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
                 <span className="text-[13px] text-soft">{d.count}</span>
                 <div
-                  className={`w-full max-w-[44px] rounded-t-lg ${i === days.length - 1 ? 'bg-accent' : 'bg-[#3A4270]'}`}
+                  className={`w-full max-w-[44px] rounded-t-xl transition-all ${i === days.length - 1 ? 'bg-gradient-to-t from-accent to-[#8B72FF] shadow-lg shadow-accent/40' : 'bg-gradient-to-t from-[#2A3060] to-[#4A5290]'}`}
                   style={{ height: `${Math.max(4, (d.count / max) * 160)}px` }}
                 />
               </div>

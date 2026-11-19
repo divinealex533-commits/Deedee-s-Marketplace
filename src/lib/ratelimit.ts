@@ -1,4 +1,4 @@
-// Simple in-memory rate limiter. Good enough to stop casual abuse of login and SMS.
+// Simple in-memory rate limiter. Good enough to stop casual abuse of login and sign-up.
 // On serverless hosts each instance keeps its own counts; for stricter limits use Upstash Redis.
 const buckets = new Map<string, { count: number; reset: number }>();
 

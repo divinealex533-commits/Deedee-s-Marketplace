@@ -6,7 +6,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const home = session?.role === 'ADMIN' ? '/admin' : '/dashboard';
 
-  const needsLogin = pathname.startsWith('/dashboard') || pathname.startsWith('/admin') || pathname === '/verify';
+  const needsLogin = pathname.startsWith('/dashboard') || pathname.startsWith('/admin');
   if (needsLogin && !session) {
     const url = new URL('/login', req.url);
     url.searchParams.set('next', pathname);
@@ -25,5 +25,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/admin/:path*', '/login', '/signup', '/verify'],
+  matcher: ['/dashboard/:path*', '/admin/:path*', '/login', '/signup'],
 };

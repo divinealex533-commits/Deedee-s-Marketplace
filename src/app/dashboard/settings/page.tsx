@@ -25,7 +25,7 @@ export default async function SettingsPage() {
             {[
               ['Name', user.name],
               ['Email', user.email],
-              ['Phone', `${maskPhone(user.phone)} · verified`],
+              ['Phone', maskPhone(user.phone)],
               ['Account type', user.accountType === 'SELLER' ? 'Seller' : 'Buyer'],
               ['Member since', formatDate(user.createdAt)],
             ].map(([k, v]) => (

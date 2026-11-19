@@ -25,6 +25,16 @@ const config: Config = {
         display: ['var(--font-display)', 'var(--font-inter)', 'sans-serif'],
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
+      keyframes: {
+        marquee: { from: { transform: 'translateX(0)' }, to: { transform: 'translateX(-50%)' } },
+        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-8px)' } },
+        pulseDot: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.35' } },
+      },
+      animation: {
+        marquee: 'marquee 35s linear infinite',
+        float: 'float 6s ease-in-out infinite',
+        'pulse-dot': 'pulseDot 2s ease-in-out infinite',
+      },
     },
   },
   plugins: [],

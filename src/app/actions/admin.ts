@@ -1,5 +1,7 @@
 'use server';
 
+import bcrypt from 'bcryptjs';
+import crypto from 'node:crypto';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
@@ -263,6 +265,22 @@ export async function deleteBankAccount(fd: FormData) {
 }
 
 // ── Users ────────────────────────────────────────────
+
+/** Sets a new random password for a customer who forgot theirs. Shown to the admin once. */
+export async function resetUserPassword(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const userId = String(fd.get('userId') ?? '');
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+  if (!u || u.role === 'ADMIN') return { error: 'Can’t reset this account here.' };
+
+  // Easy to read out on WhatsApp: e.g. "Kite-4827-Moon"
+  const words = ['Sun', 'Moon', 'Star', 'Kite', 'Lion', 'River', 'Cloud', 'Palm', 'Gold', 'Wave', 'Rock', 'Bird'];
+  const pick = () => words[crypto.randomInt(words.length)]!;
+  const temp = `${pick()}-${crypto.randomInt(1000, 10000)}-${pick()}`;
+
+  await prisma.user.update({ where: { id: userId }, data: { passwordHash: await bcrypt.hash(temp, 12) } });
+  return { ok: temp };
+}
 
 export async function toggleBan(fd: FormData) {
   const admin = await requireAdmin();

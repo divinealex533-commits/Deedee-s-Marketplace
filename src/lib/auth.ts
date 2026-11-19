@@ -31,7 +31,7 @@ export async function getSession() {
 }
 
 /** Loads the logged-in user from the database, or sends them to log in. */
-export async function requireUser(opts?: { allowUnverified?: boolean }) {
+export async function requireUser() {
   const session = await getSession();
   if (!session) redirect('/login');
 
@@ -39,12 +39,11 @@ export async function requireUser(opts?: { allowUnverified?: boolean }) {
   // A deleted or banned user still holding a valid cookie: clear it.
   if (!user || user.banned) redirect('/api/auth/logout');
 
-  if (!opts?.allowUnverified && !user.phoneVerified && user.role !== 'ADMIN') redirect('/verify');
   return user;
 }
 
 export async function requireAdmin() {
-  const user = await requireUser({ allowUnverified: true });
+  const user = await requireUser();
   if (user.role !== 'ADMIN') redirect('/dashboard');
   return user;
 }

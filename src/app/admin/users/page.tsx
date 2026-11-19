@@ -4,6 +4,7 @@ import { formatDate, naira } from '@/lib/format';
 import { toggleBan } from '@/app/actions/admin';
 import SubmitButton from '@/components/SubmitButton';
 import CreditForm from './CreditForm';
+import ResetPassword from './ResetPassword';
 
 export const metadata = { title: 'Users' };
 export const dynamic = 'force-dynamic';
@@ -53,7 +54,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
       <section className="card p-6">
         {users.length ? (
           <div className="table-wrap">
-            <table className="data-table min-w-[980px]">
+            <table className="data-table min-w-[1080px]">
               <thead>
                 <tr><th scope="col">User</th><th scope="col">Phone</th><th scope="col">Type</th><th scope="col">Balance</th><th scope="col">Orders</th><th scope="col">Joined</th><th scope="col">Add funds</th><th scope="col"><span className="sr-only">Actions</span></th></tr>
               </thead>
@@ -66,7 +67,6 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
                     </td>
                     <td className="whitespace-nowrap text-soft">
                       {u.phone.startsWith('234') ? '0' + u.phone.slice(3) : u.phone}
-                      {!u.phoneVerified && <span className="ml-1 text-xs text-warn">(unverified)</span>}
                     </td>
                     <td className="text-soft">{u.accountType === 'SELLER' ? 'Seller' : 'Buyer'}</td>
                     <td className="text-white">{naira(u.balance)}</td>
@@ -75,12 +75,15 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
                     <td><CreditForm userId={u.id} /></td>
                     <td>
                       {u.role !== 'ADMIN' && (
+                        <div className="flex flex-col items-start gap-2">
+                        <ResetPassword userId={u.id} phone={u.phone} />
                         <form action={toggleBan}>
                           <input type="hidden" name="userId" value={u.id} />
                           <SubmitButton className={u.banned ? 'btn btn-ghost btn-sm' : 'btn btn-danger btn-sm'} pendingText="…">
                             {u.banned ? 'Unban' : 'Ban'}
                           </SubmitButton>
                         </form>
+                        </div>
                       )}
                     </td>
                   </tr>
