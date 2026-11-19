@@ -29,7 +29,7 @@ export default function AppShell({
     <div className="flex min-h-screen flex-col lg:flex-row">
       <aside className="relative flex flex-col gap-6 border-b border-line bg-gradient-to-b from-panel2 to-ink p-4 lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 lg:gap-8 lg:border-b-0 lg:border-r lg:p-5">
         <div className="flex items-center justify-between px-2">
-          <Logo short href={homeHref} />
+          <Logo href={homeHref} />
           <span className="badge bg-accent/15 text-accent-text lg:hidden">{badge}</span>
         </div>
         <span className="hidden px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-placeholder lg:block">{badge} menu</span>
