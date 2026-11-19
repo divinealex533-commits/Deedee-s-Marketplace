@@ -12,6 +12,7 @@ const items: NavItem[] = [
   { href: '/admin/orders', label: 'Orders', icon: 'orders' },
   { href: '/admin/users', label: 'Users', icon: 'users' },
   { href: '/admin/bank-accounts', label: 'Bank accounts', icon: 'banks' },
+  { href: '/admin/settings', label: 'Settings', icon: 'settings' },
 ];
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {

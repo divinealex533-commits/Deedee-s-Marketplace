@@ -28,9 +28,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
           where: { listingId: id, status: 'AVAILABLE' },
           orderBy: { createdAt: 'asc' },
           take: 200,
-          select: { id: true, login: true },
+          select: { id: true, login: true, previewUrl: true },
         })
-      ).map((c) => ({ id: c.id, preview: previewLogin(c.login, l.showLogin) }))
+      ).map((c) => ({ id: c.id, preview: previewLogin(c.login, l.showLogin), preview_url: c.previewUrl }))
     : undefined;
 
   return ok({

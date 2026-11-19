@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { formatDate, initials, lagosDay, naira, startOfLagosDay, timeAgo } from '@/lib/format';
 import StatCard from '@/components/StatCard';
 import { requireAdmin } from '@/lib/auth';
+import { autoCompleteOrders } from '@/lib/orders';
 import OrderStatus from '@/components/OrderStatus';
 
 export const metadata = { title: 'Overview' };
@@ -13,6 +14,7 @@ const DAY = 24 * 60 * 60 * 1000;
 
 export default async function AdminOverview() {
   const admin = await requireAdmin();
+  await autoCompleteOrders().catch(() => 0);
   const firstName = admin.name.split(' ')[0];
   const hour = Number(new Date().toLocaleString('en-GB', { hour: 'numeric', hour12: false, timeZone: 'Africa/Lagos' }));
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';

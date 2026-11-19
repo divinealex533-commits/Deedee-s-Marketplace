@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import AppShell from '@/components/AppShell';
 import type { NavItem } from '@/components/SideNav';
 import { requireUser } from '@/lib/auth';
+import AnnouncementBar from '@/components/AnnouncementBar';
 
 const items: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: 'dashboard', exact: true },
@@ -16,7 +17,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const user = await requireUser();
   const nav = user.role === 'ADMIN' ? [...items, { href: '/admin', label: 'Admin', icon: 'pool' } as NavItem] : items;
   return (
-    <AppShell items={nav} user={user} badge={user.accountType === 'SELLER' ? 'Seller' : 'Buyer'} homeHref="/dashboard">
+    <AppShell items={nav} user={user} badge={user.accountType === 'SELLER' ? 'Seller' : 'Buyer'} homeHref="/dashboard" banner={<AnnouncementBar />}>
       {children}
     </AppShell>
   );

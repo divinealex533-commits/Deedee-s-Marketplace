@@ -64,7 +64,7 @@ function SingleForm({ listings, defaultListing }: { listings: { id: string; labe
   const clear = () => {
     const f = ref.current;
     if (!f) return;
-    for (const name of ['login', 'password', 'notes']) {
+    for (const name of ['login', 'password', 'notes', 'previewUrl']) {
       const el = f.elements.namedItem(name) as HTMLInputElement | null;
       if (el) el.value = '';
     }
@@ -87,10 +87,17 @@ function SingleForm({ listings, defaultListing }: { listings: { id: string; labe
           <PasswordInput id="cred-password" name="password" required autoComplete="new-password" />
         </div>
       </div>
-      <div>
-        <label htmlFor="notes" className="label">Recovery email / notes (optional)</label>
-        <input id="notes" name="notes" autoComplete="off" className="input" />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="notes" className="label">Recovery email / notes (optional)</label>
+          <input id="notes" name="notes" autoComplete="off" className="input" />
+        </div>
+        <div>
+          <label htmlFor="previewUrl" className="label">Preview link (optional)</label>
+          <input id="previewUrl" name="previewUrl" type="url" inputMode="url" placeholder="https://instagram.com/thepage" autoComplete="off" className="input" />
+        </div>
       </div>
+      <p className="-mt-1 text-[13px] text-muted">Customers can open the preview link before buying, e.g. the profile page or a screenshot.</p>
       <FormMessage state={state} />
       <SubmitButton pending={pending} pendingText="Adding…">Add credential</SubmitButton>
     </form>
@@ -132,10 +139,12 @@ function BulkForm({ listings, defaultListing }: { listings: { id: string; label:
           value={text}
           onChange={(e) => setText(e.target.value)}
           spellCheck={false}
-          placeholder={'page_one@mail.com:Pass1234:Fashion page\npage_two:Secret987\npage_three|Hello2026|Food page'}
+          placeholder={'page_one@mail.com:Pass1234:Fashion page https://instagram.com/page_one\npage_two:Secret987\npage_three|Hello2026|Food page|https://tiktok.com/@page_three'}
           className="input font-mono text-sm"
         />
-        <p className="mt-1.5 text-[13px] text-muted">{count} valid line{count === 1 ? '' : 's'} detected. Duplicates are skipped automatically.</p>
+        <p className="mt-1.5 text-[13px] text-muted">
+          {count} valid line{count === 1 ? '' : 's'} detected. Add a link (https://…) anywhere on a line to give that item a preview link. Duplicates are skipped.
+        </p>
       </div>
       <FormMessage state={state} />
       <SubmitButton pending={pending} disabled={!count} pendingText="Encrypting and saving…">

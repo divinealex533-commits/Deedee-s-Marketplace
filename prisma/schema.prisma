@@ -123,6 +123,8 @@ model Credential {
   listingId String
   listing   Listing          @relation(fields: [listingId], references: [id], onDelete: Cascade)
   login     String
+  /// Optional public link customers can open before buying (e.g. the profile page)
+  previewUrl String?
   secretEnc String
   status    CredentialStatus @default(AVAILABLE)
   order     Order?
@@ -229,4 +231,11 @@ model ApiKey {
   createdAt  DateTime  @default(now())
 
   @@index([userId])
+}
+
+/// Simple site settings edited from Admin → Settings (e.g. the announcement bar).
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }

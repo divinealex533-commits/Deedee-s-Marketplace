@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Clock, ShoppingBag } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
+import { autoCompleteOrders } from '@/lib/orders';
 import { formatDate, naira, signedNaira } from '@/lib/format';
 import StatCard from '@/components/StatCard';
 import OrderCard from './OrderCard';
@@ -15,6 +16,7 @@ export default async function DashboardPage({
 }) {
   const user = await requireUser();
   const sp = await searchParams;
+  await autoCompleteOrders().catch(() => 0);
 
   const [orders, tx] = await Promise.all([
     prisma.order.findMany({

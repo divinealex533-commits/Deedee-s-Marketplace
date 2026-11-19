@@ -74,7 +74,7 @@ const endpoints: Endpoint[] = [
     method: 'GET',
     path: '/products/{id}',
     title: 'Get a product',
-    text: 'One product. Add items=true to get up to 200 available items with a preview, so you can buy specific ones by id.',
+    text: 'One product. Add items=true to get up to 200 available items with a preview (and a preview link when the item has one), so you can buy specific ones by id.',
     paramsLabel: 'Query parameters',
     params: [{ name: 'items', type: 'boolean', text: 'true to include available items (id + preview)' }],
     request: `curl "${BASE}/products/clx9a2b3c0001?items=true" \\
@@ -89,8 +89,8 @@ const endpoints: Endpoint[] = [
     "currency": "NGN",
     "stock": 42,
     "items": [
-      { "id": "clxcred0001", "preview": "fa•••@g•••.com" },
-      { "id": "clxcred0002", "preview": "12402974510" }
+      { "id": "clxcred0001", "preview": "fa•••@g•••.com", "preview_url": "https://instagram.com/fashionpage" },
+      { "id": "clxcred0002", "preview": "12402974510", "preview_url": null }
     ]
   }
 }`,

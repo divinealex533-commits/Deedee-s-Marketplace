@@ -69,7 +69,7 @@ export default function OrderCard(props: { id: string; title: string; platform: 
 
       {props.status === 'ESCROW' && (
         <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-4">
-          <span className="mr-auto text-sm text-muted">Checked the account?</span>
+          <span className="mr-auto text-sm text-muted">Checked the account? <span className="text-[12px] text-placeholder">(auto-confirms 24h after purchase)</span></span>
           <form action={confirmOrder}>
             <input type="hidden" name="orderId" value={props.id} />
             <SubmitButton className="btn btn-primary btn-sm" pendingText="Saving…">It works</SubmitButton>

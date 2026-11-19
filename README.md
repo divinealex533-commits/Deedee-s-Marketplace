@@ -39,6 +39,13 @@ A marketplace for premium digital accounts. Customers sign up, fund a wallet by 
 - Orders return the logins immediately, are paid from the wallet, and accept a `reference` so retries never charge twice
 - 60 requests/minute per key
 
+**Launch extras**
+- Preview links: give any item a link (e.g. its profile page) that customers can open before buying; add `https://…` anywhere on a bulk line
+- Announcement bar (Admin → Settings) with live preview, colours and an optional link; customers can close it
+- Launch checklist in Admin → Settings
+- Orders auto-confirm 24 hours after purchase (daily job at `/api/cron/daily`, protected by `CRON_SECRET`)
+- App icon, installable on phones (“Add to Home Screen”), sitemap, robots.txt and a share image for WhatsApp/X/Facebook
+
 **Security**
 - Passwords hashed with bcrypt
 - Stored credentials encrypted with AES-256-GCM; only the buyer and admins can decrypt them

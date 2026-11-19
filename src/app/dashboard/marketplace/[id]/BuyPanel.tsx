@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { Minus, Plus } from 'lucide-react';
+import { Eye, Minus, Plus } from 'lucide-react';
 import { buy } from '@/app/actions/shop';
 import CopyButton from '@/components/CopyButton';
 import SubmitButton from '@/components/SubmitButton';
@@ -23,7 +23,7 @@ export default function BuyPanel({
   balance: number;
   stock: number;
   showLogin: boolean;
-  items: { id: string; preview: string }[];
+  items: { id: string; preview: string; url: string | null }[];
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [qty, setQty] = useState(1);
@@ -77,6 +77,18 @@ export default function BuyPanel({
                 >
                   <input type="checkbox" checked={on} onChange={() => toggle(item.id)} className="h-5 w-5 shrink-0 accent-accent" />
                   <span className="min-w-0 flex-1 truncate font-mono text-[15px] tracking-wide text-white">{item.preview}</span>
+                  {item.url && (
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer nofollow"
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label={`Open preview for ${item.preview}`}
+                      className="inline-flex h-8 shrink-0 items-center gap-1 rounded-lg bg-accent/15 px-2.5 text-xs font-semibold text-accent-text hover:bg-accent hover:text-white"
+                    >
+                      <Eye className="h-3.5 w-3.5" aria-hidden="true" /> Preview
+                    </a>
+                  )}
                   {showLogin && (
                     <span onClick={(e) => e.preventDefault()}>
                       <CopyButton value={item.preview} label="Preview" />

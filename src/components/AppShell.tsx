@@ -12,12 +12,14 @@ export default function AppShell({
   user,
   badge,
   homeHref,
+  banner,
   children,
 }: {
   items: NavItem[];
   user: { name: string; email: string };
   badge: string;
   homeHref: string;
+  banner?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -44,6 +46,7 @@ export default function AppShell({
       </aside>
 
       <div className="min-w-0 flex-1">
+        {banner}
         <header className="sticky top-0 z-30 flex items-center justify-end gap-3 border-b border-line bg-ink/80 px-5 py-3.5 backdrop-blur-xl sm:px-8">
           <div className="text-right">
             <div className="font-semibold text-white">{user.name}</div>

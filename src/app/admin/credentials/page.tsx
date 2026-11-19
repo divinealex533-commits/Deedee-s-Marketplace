@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ExternalLink } from 'lucide-react';
 import type { CredentialStatus } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { formatDate, naira } from '@/lib/format';
@@ -166,9 +167,9 @@ export default async function CredentialsPage({
 
         {creds.length ? (
           <div className="table-wrap">
-            <table className="data-table min-w-[820px]">
+            <table className="data-table min-w-[920px]">
               <thead>
-                <tr><th scope="col">Listing</th><th scope="col">Login</th><th scope="col">Password</th><th scope="col">Status</th><th scope="col">Added</th><th scope="col"><span className="sr-only">Actions</span></th></tr>
+                <tr><th scope="col">Listing</th><th scope="col">Login</th><th scope="col">Password</th><th scope="col">Preview</th><th scope="col">Status</th><th scope="col">Added</th><th scope="col"><span className="sr-only">Actions</span></th></tr>
               </thead>
               <tbody>
                 {creds.map((c) => (
@@ -176,6 +177,15 @@ export default async function CredentialsPage({
                     <td><div className="text-white">{c.listing.title}</div><div className="text-[13px] text-muted">{c.listing.platform}</div></td>
                     <td className="break-all font-mono text-soft">{c.login}</td>
                     <td><RevealCell id={c.id} /></td>
+                    <td>
+                      {c.previewUrl ? (
+                        <a href={c.previewUrl} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex items-center gap-1 text-sm font-medium text-accent-text hover:text-white">
+                          <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" /> Open
+                        </a>
+                      ) : (
+                        <span className="text-muted">—</span>
+                      )}
+                    </td>
                     <td>
                       {c.status === 'AVAILABLE' ? (
                         <span className="badge bg-[#0F3B2C] text-success">Available</span>

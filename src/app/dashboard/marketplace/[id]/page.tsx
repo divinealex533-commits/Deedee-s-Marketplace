@@ -38,7 +38,7 @@ export default async function ListingPage({
     where: { listingId: id, status: 'AVAILABLE' },
     orderBy: { createdAt: 'asc' },
     take: SHOW,
-    select: { id: true, login: true },
+    select: { id: true, login: true, previewUrl: true },
   });
   const stock = listing._count.credentials;
 
@@ -92,7 +92,7 @@ export default async function ListingPage({
             balance={user.balance}
             stock={stock}
             showLogin={listing.showLogin}
-            items={items.map((c) => ({ id: c.id, preview: previewLogin(c.login, listing.showLogin) }))}
+            items={items.map((c) => ({ id: c.id, preview: previewLogin(c.login, listing.showLogin), url: c.previewUrl }))}
           />
         </section>
       </div>

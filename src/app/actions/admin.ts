@@ -2,7 +2,7 @@
 
 import bcrypt from 'bcryptjs';
 import crypto from 'node:crypto';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
@@ -12,6 +12,20 @@ import { readImage } from '@/lib/image';
 import type { FormState } from './types';
 
 const kobo = (nairaValue: number) => Math.round(nairaValue * 100);
+
+/** Accepts only real http(s) links; returns null otherwise. */
+function cleanUrl(raw: string): string | null {
+  const v = raw.trim();
+  if (!v) return null;
+  try {
+    const u = new URL(/^https?:\/\//i.test(v) ? v : `https://${v}`);
+    return u.protocol === 'http:' || u.protocol === 'https:' ? u.toString().slice(0, 500) : null;
+  } catch {
+    return null;
+  }
+}
+
+const URL_IN_LINE = /https?:\/\/\S+/i;
 
 // ── Listings ─────────────────────────────────────────
 
@@ -82,14 +96,17 @@ export async function addCredential(_: FormState, fd: FormData): Promise<FormSta
   const login = String(fd.get('login') ?? '').trim();
   const password = String(fd.get('password') ?? '');
   const notes = String(fd.get('notes') ?? '').trim();
+  const rawUrl = String(fd.get('previewUrl') ?? '').trim();
+  const previewUrl = cleanUrl(rawUrl);
 
   if (!listingId) return { error: 'Choose which listing this credential belongs to.' };
+  if (rawUrl && !previewUrl) return { error: 'The preview link doesn’t look like a web address.' };
   if (!login || !password) return { error: 'Enter both the login and the password.' };
 
   const dup = await prisma.credential.findFirst({ where: { listingId, login } });
   if (dup) return { error: `“${login}” is already in this listing.` };
 
-  await prisma.credential.create({ data: { listingId, login, secretEnc: encryptSecret({ password, notes }) } });
+  await prisma.credential.create({ data: { listingId, login, previewUrl, secretEnc: encryptSecret({ password, notes }) } });
   revalidatePath('/admin', 'layout');
   return { ok: `Added “${login}” to the pool.` };
 }
@@ -97,6 +114,7 @@ export async function addCredential(_: FormState, fd: FormData): Promise<FormSta
 /**
  * Bulk format, one per line:  login:password  or  login:password:notes
  * Also accepts | or a tab as the separator (handy when pasting from a spreadsheet).
+ * A web link (https://…) anywhere on the line becomes that item's preview link.
  */
 export async function addBulk(_: FormState, fd: FormData): Promise<FormState> {
   await requireAdmin();
@@ -112,10 +130,14 @@ export async function addBulk(_: FormState, fd: FormData): Promise<FormState> {
     (await prisma.credential.findMany({ where: { listingId }, select: { login: true } })).map((c) => c.login),
   );
 
-  const rows: { listingId: string; login: string; secretEnc: string }[] = [];
+  const rows: { listingId: string; login: string; previewUrl: string | null; secretEnc: string }[] = [];
   let bad = 0;
   let dupes = 0;
-  for (const line of lines) {
+  for (const rawLine of lines) {
+    // Pull out a preview link first (links contain ":" which would confuse the split)
+    const found = rawLine.match(URL_IN_LINE)?.[0] ?? '';
+    const previewUrl = found ? cleanUrl(found) : null;
+    const line = found ? rawLine.replace(found, '').replace(/[|:\t\s]+$/, '').trim() : rawLine;
     const sep = line.includes('|') ? '|' : line.includes('\t') ? '\t' : ':';
     const [login, password, ...rest] = line.split(sep).map((p) => p.trim());
     if (!login || !password) {
@@ -127,7 +149,7 @@ export async function addBulk(_: FormState, fd: FormData): Promise<FormState> {
       continue;
     }
     existing.add(login);
-    rows.push({ listingId, login, secretEnc: encryptSecret({ password, notes: rest.join(sep).trim() }) });
+    rows.push({ listingId, login, previewUrl, secretEnc: encryptSecret({ password, notes: rest.join(sep).trim() }) });
   }
 
   if (rows.length) await prisma.credential.createMany({ data: rows });
@@ -262,6 +284,34 @@ export async function deleteBankAccount(fd: FormData) {
   await prisma.bankAccount.delete({ where: { id: String(fd.get('id')) } });
   revalidatePath('/admin/bank-accounts');
   revalidatePath('/dashboard/wallet');
+}
+
+// ── Site settings ────────────────────────────────────
+
+export async function saveAnnouncement(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const text = String(fd.get('text') ?? '').trim().slice(0, 160);
+  const rawLink = String(fd.get('link') ?? '').trim();
+  const link = rawLink.startsWith('/') ? rawLink.slice(0, 300) : rawLink ? cleanUrl(rawLink) : '';
+  if (rawLink && !link) return { error: 'The link must be a web address or a page path like /signup.' };
+  const toneRaw = String(fd.get('tone') ?? 'accent');
+  const tone = toneRaw === 'green' || toneRaw === 'amber' ? toneRaw : 'accent';
+  const enabled = fd.get('enabled') === 'on';
+  if (enabled && !text) return { error: 'Write the announcement text first.' };
+
+  const value = JSON.stringify({ enabled, text, link, tone });
+  await prisma.setting.upsert({ where: { key: 'announcement' }, create: { key: 'announcement', value }, update: { value } });
+  revalidateTag('settings');
+  return { ok: enabled ? 'Announcement is live on the site.' : 'Saved. The announcement is turned off.' };
+}
+
+export async function updateAdminName(_: FormState, fd: FormData): Promise<FormState> {
+  const admin = await requireAdmin();
+  const name = String(fd.get('name') ?? '').trim().slice(0, 60);
+  if (name.length < 2) return { error: 'Enter your name.' };
+  await prisma.user.update({ where: { id: admin.id }, data: { name } });
+  revalidatePath('/admin', 'layout');
+  return { ok: 'Name updated.' };
 }
 
 // ── Users ────────────────────────────────────────────
