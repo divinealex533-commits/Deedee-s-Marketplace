@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-ink text-text antialiased;
+}
+
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-6;
+  }
+  .btn {
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-[15px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-text disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-primary {
+    @apply bg-accent text-white hover:bg-accent-hover;
+  }
+  .btn-ghost {
+    @apply border border-line2 text-text hover:bg-panel;
+  }
+  .btn-danger {
+    @apply border border-[#5B2333] text-danger hover:bg-[#3A1520];
+  }
+  .btn-sm {
+    @apply min-h-[36px] rounded-lg px-3 py-1.5 text-sm;
+  }
+  .input {
+    @apply w-full rounded-xl border border-line2 bg-panel2 px-4 py-3 text-base text-text placeholder:text-placeholder focus:border-accent-text focus:outline-none focus:ring-2 focus:ring-accent/40;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-soft;
+  }
+  .card {
+    @apply rounded-2xl border border-line bg-panel;
+  }
+  .eyebrow {
+    @apply text-sm font-semibold uppercase tracking-[0.08em] text-accent-text;
+  }
+  .h-section {
+    @apply font-display text-[clamp(30px,4vw,44px)] font-bold leading-tight text-white;
+  }
+  .alert-error {
+    @apply rounded-xl bg-[#3A1520] px-4 py-3 text-sm text-danger;
+  }
+  .alert-ok {
+    @apply rounded-xl bg-[#0F3B2C] px-4 py-3 text-sm text-success;
+  }
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium;
+  }
+  .table-wrap {
+    @apply overflow-x-auto rounded-xl border border-line;
+  }
+  .data-table {
+    @apply w-full min-w-[640px] border-collapse text-sm;
+  }
+  .data-table th {
+    @apply bg-panel2 px-4 py-3 text-left font-semibold text-muted;
+  }
+  .data-table td {
+    @apply border-t border-line px-4 py-3 align-middle;
+  }
+}

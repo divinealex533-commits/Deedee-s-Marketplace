@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum AccountType {
+  BUYER
+  SELLER
+}
+
+enum OtpPurpose {
+  SIGNUP
+  RESET
+}
+
+enum CredentialStatus {
+  AVAILABLE
+  SOLD
+}
+
+enum OrderStatus {
+  ESCROW
+  COMPLETED
+  DISPUTED
+  REFUNDED
+}
+
+enum TxType {
+  FUNDING
+  PURCHASE
+  REFUND
+  ADJUSTMENT
+}
+
+enum TxStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+/// All money is stored in kobo (₦1 = 100 kobo) to avoid rounding errors.
+model User {
+  id            String        @id @default(cuid())
+  name          String
+  email         String        @unique
+  phone         String        @unique
+  passwordHash  String
+  role          Role          @default(USER)
+  accountType   AccountType   @default(BUYER)
+  phoneVerified Boolean       @default(false)
+  banned        Boolean       @default(false)
+  balance       Int           @default(0)
+  referralCode  String        @unique
+  referredById  String?
+  referredBy    User?         @relation("Referrals", fields: [referredById], references: [id])
+  referrals     User[]        @relation("Referrals")
+  orders        Order[]
+  transactions  Transaction[]
+  createdAt     DateTime      @default(now())
+
+  @@index([createdAt])
+}
+
+model Otp {
+  id        String     @id @default(cuid())
+  phone     String
+  purpose   OtpPurpose
+  codeHash  String
+  attempts  Int        @default(0)
+  expiresAt DateTime
+  createdAt DateTime   @default(now())
+
+  @@index([phone, purpose])
+}
+
+/// A product in the shop, e.g. "Instagram 5K fashion page".
+/// Its stock is the number of AVAILABLE credentials attached to it.
+model Listing {
+  id          String       @id @default(cuid())
+  platform    String
+  title       String
+  description String       @default("")
+  price       Int
+  active      Boolean      @default(true)
+  credentials Credential[]
+  orders      Order[]
+  createdAt   DateTime     @default(now())
+}
+
+/// One account login in the pool. Password and notes are AES-256-GCM encrypted.
+model Credential {
+  id        String           @id @default(cuid())
+  listingId String
+  listing   Listing          @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  login     String
+  secretEnc String
+  status    CredentialStatus @default(AVAILABLE)
+  order     Order?
+  createdAt DateTime         @default(now())
+
+  @@index([listingId, status])
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [id])
+  listingId    String
+  listing      Listing     @relation(fields: [listingId], references: [id])
+  credentialId String      @unique
+  credential   Credential  @relation(fields: [credentialId], references: [id])
+  amount       Int
+  status       OrderStatus @default(ESCROW)
+  confirmedAt  DateTime?
+  createdAt    DateTime    @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([status])
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  type        TxType
+  status      TxStatus @default(SUCCESS)
+  /// Positive = money in, negative = money out (kobo).
+  amount      Int
+  reference   String?  @unique
+  description String
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+/// One row per visitor per day (Lagos time), for the admin "visitors today" count.
+model Visit {
+  id        String   @id @default(cuid())
+  visitorId String
+  day       String
+  path      String
+  hits      Int      @default(1)
+  lastSeen  DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@unique([visitorId, day])
+  @@index([day])
+  @@index([lastSeen])
+}
