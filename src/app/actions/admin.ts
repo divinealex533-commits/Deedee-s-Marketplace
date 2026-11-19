@@ -359,7 +359,7 @@ export async function resetUserPassword(_: FormState, fd: FormData): Promise<For
   const pick = () => words[crypto.randomInt(words.length)]!;
   const temp = `${pick()}-${crypto.randomInt(1000, 10000)}-${pick()}`;
 
-  await prisma.user.update({ where: { id: userId }, data: { passwordHash: await bcrypt.hash(temp, 12) } });
+  await prisma.user.update({ where: { id: userId }, data: { passwordHash: await bcrypt.hash(temp, 12), sessionVersion: { increment: 1 }, failedLogins: 0, lockedUntil: null } });
   return { ok: temp };
 }
 
@@ -369,7 +369,7 @@ export async function toggleBan(fd: FormData) {
   if (id === admin.id) return;
   const u = await prisma.user.findUnique({ where: { id }, select: { banned: true, role: true } });
   if (!u || u.role === 'ADMIN') return;
-  await prisma.user.update({ where: { id }, data: { banned: !u.banned } });
+  await prisma.user.update({ where: { id }, data: { banned: !u.banned, sessionVersion: { increment: 1 } } });
   revalidatePath('/admin/users');
 }
 

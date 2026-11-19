@@ -103,8 +103,21 @@ export async function login(_: FormState, fd: FormData): Promise<FormState> {
   // With no user we still hash, so a wrong email takes as long as a wrong password.
   const valid = user ? await bcrypt.compare(pw, user.passwordHash) : (await bcrypt.hash(pw, 12), false);
 
-  if (!user || !valid) return { error: 'Those details don’t match an account.' };
+  if (user?.lockedUntil && user.lockedUntil > new Date()) {
+    return { error: 'This account is locked for 15 minutes after too many wrong passwords. Try again later, or reset your password.' };
+  }
+  if (!user || !valid) {
+    if (user) {
+      const fails = user.failedLogins + 1;
+      await prisma.user.update({
+        where: { id: user.id },
+        data: fails >= 8 ? { failedLogins: 0, lockedUntil: new Date(Date.now() + 15 * 60 * 1000) } : { failedLogins: fails },
+      });
+    }
+    return { error: 'Those details don’t match an account.' };
+  }
   if (user.banned) return { error: 'This account has been suspended. Contact support for help.' };
+  if (user.failedLogins || user.lockedUntil) await prisma.user.update({ where: { id: user.id }, data: { failedLogins: 0, lockedUntil: null } });
 
   await createSession(user, remember);
 
@@ -128,6 +141,18 @@ export async function changePassword(_: FormState, fd: FormData): Promise<FormSt
   if (!(await bcrypt.compare(current, user.passwordHash))) return { error: 'Your current password is wrong.' };
   if (!parsed.success) return { error: parsed.error.issues[0]!.message };
 
-  await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await bcrypt.hash(parsed.data.password, 12) } });
-  return { ok: 'Password changed.' };
+  const updated = await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordHash: await bcrypt.hash(parsed.data.password, 12), sessionVersion: { increment: 1 } },
+  });
+  await createSession(updated, true); // keep this device logged in; every other device is signed out
+  return { ok: 'Password changed. Any other device that was logged in has been signed out.' };
+}
+
+/** Signs this account out on every phone and computer, including this one. */
+export async function logoutEverywhere() {
+  const user = await requireUser();
+  await prisma.user.update({ where: { id: user.id }, data: { sessionVersion: { increment: 1 } } });
+  await destroySession();
+  redirect('/login');
 }

@@ -4,11 +4,11 @@ import { prisma } from './db';
 import { SESSION_COOKIE, signSession, verifySession } from './session';
 
 export async function createSession(
-  user: { id: string; role: 'USER' | 'ADMIN'; name: string },
+  user: { id: string; role: 'USER' | 'ADMIN'; name: string; sessionVersion?: number },
   remember: boolean,
 ) {
   const days = remember ? 30 : 1;
-  const token = await signSession({ uid: user.id, role: user.role, name: user.name }, days);
+  const token = await signSession({ uid: user.id, role: user.role, name: user.name, sv: user.sessionVersion ?? 0 }, days);
   const jar = await cookies();
   jar.set(SESSION_COOKIE, token, {
     httpOnly: true,
@@ -37,7 +37,8 @@ export async function requireUser() {
 
   const user = await prisma.user.findUnique({ where: { id: session.uid } });
   // A deleted or banned user still holding a valid cookie: clear it.
-  if (!user || user.banned) redirect('/api/auth/logout');
+  // Also signs out cookies from before a password change / "log out everywhere".
+  if (!user || user.banned || (session.sv ?? 0) !== user.sessionVersion) redirect('/api/auth/logout');
 
   return user;
 }

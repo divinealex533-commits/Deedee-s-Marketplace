@@ -83,6 +83,11 @@ model User {
   referrals     User[]        @relation("Referrals")
   /// true once this user's referrer has been paid the referral bonus
   referralBonusPaid Boolean   @default(false)
+  /// Raised on password change, reset or "log out everywhere": older login cookies stop working.
+  sessionVersion Int          @default(0)
+  /// Wrong-password counter and temporary lock (stops password guessing).
+  failedLogins  Int           @default(0)
+  lockedUntil   DateTime?
   reviews       Review[]
   orders        Order[]
   transactions  Transaction[]

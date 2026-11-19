@@ -25,7 +25,14 @@ async function main() {
   const passwordHash = await bcrypt.hash(password, 12);
   const admin = await prisma.user.upsert({
     where: { email },
-    update: { role: 'ADMIN', passwordHash, phoneVerified: true, banned: false },
+    // The password is only set when the account is first created, so a password changed on the
+    // website isn't reset on every deploy. Set ADMIN_FORCE_PASSWORD=1 for one deploy to reset it.
+    update: {
+      role: 'ADMIN',
+      phoneVerified: true,
+      banned: false,
+      ...(process.env.ADMIN_FORCE_PASSWORD === '1' ? { passwordHash, sessionVersion: { increment: 1 }, failedLogins: 0, lockedUntil: null } : {}),
+    },
     create: {
       name: 'Admin',
       email,

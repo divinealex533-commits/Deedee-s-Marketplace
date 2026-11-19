@@ -3,7 +3,7 @@ import { SignJWT, jwtVerify } from 'jose';
 
 export const SESSION_COOKIE = 'dd_session';
 
-export type Session = { uid: string; role: 'USER' | 'ADMIN'; name: string };
+export type Session = { uid: string; role: 'USER' | 'ADMIN'; name: string; sv?: number };
 
 function secret() {
   const s = process.env.AUTH_SECRET;
@@ -28,6 +28,7 @@ export async function verifySession(token?: string): Promise<Session | null> {
       uid: payload.uid,
       role: payload.role === 'ADMIN' ? 'ADMIN' : 'USER',
       name: typeof payload.name === 'string' ? payload.name : '',
+      sv: typeof payload.sv === 'number' ? payload.sv : 0,
     };
   } catch {
     return null;

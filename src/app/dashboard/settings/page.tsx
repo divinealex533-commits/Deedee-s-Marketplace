@@ -4,6 +4,7 @@ import { formatDate } from '@/lib/format';
 import { prisma } from '@/lib/db';
 import CopyButton from '@/components/CopyButton';
 import ChangePasswordForm from './ChangePasswordForm';
+import { logoutEverywhere } from '@/app/actions/auth';
 import { SITE_URL } from '@/lib/site';
 
 export const metadata = { title: 'Settings' };
@@ -46,6 +47,10 @@ export default async function SettingsPage() {
         <section aria-labelledby="security" className="card min-w-0 flex-[1_1_320px] p-6">
           <h2 id="security" className="mb-4 text-lg font-semibold text-white">Change password</h2>
           <ChangePasswordForm />
+          <form action={logoutEverywhere} className="mt-6 border-t border-line pt-5">
+            <p className="mb-3 text-sm text-muted">Lost a phone, or logged in on someone else’s device? Sign out everywhere at once.</p>
+            <button type="submit" className="btn btn-danger">Log out of all devices</button>
+          </form>
         </section>
       </div>
     </>
