@@ -133,7 +133,7 @@ export function canResendReceipt(c: { status: string; expiresAt: Date; reviewedA
 }
 
 /** Moves a checkout to "under review" with the customer's receipt, re-holding stock if it had expired. */
-export async function attachReceipt(userId: string, id: string, data: { bankAccountId: string | null; senderName: string; proof: Uint8Array; proofType: string }) {
+export async function attachReceipt(userId: string, id: string, data: { bankAccountId: string | null; senderName: string; proof: Uint8Array<ArrayBuffer>; proofType: string }) {
   return prisma.$transaction(async (tx) => {
     const c = await tx.checkout.findFirst({ where: { id, userId } });
     if (!c) return { ok: false as const, error: 'Checkout not found.' };
