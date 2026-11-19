@@ -6,7 +6,74 @@
   color-scheme: dark;
   --font-inter: 'Inter';
   --font-display: 'Space Grotesk';
+  /* Dark theme (default). Values are "R G B" so Tailwind opacity modifiers work. */
+  --c-white: 255 255 255;
+  --c-ink: 11 16 32;
+  --c-panel: 18 24 51;
+  --c-panel2: 15 20 41;
+  --c-line: 30 37 64;
+  --c-line2: 46 54 88;
+  --c-text: 231 233 243;
+  --c-soft: 199 203 221;
+  --c-muted: 163 169 194;
+  --c-placeholder: 126 133 163;
+  --c-accent-text: 168 151 255;
+  --c-success: 110 231 183;
+  --c-warn: 252 211 77;
+  --c-danger: 252 165 181;
 }
+
+/* Light theme: customers switch with the sun/moon button (saved on their device). */
+html.light {
+  color-scheme: light;
+  --c-white: 17 20 39; /* "white" text becomes near-black on light backgrounds */
+  --c-ink: 245 246 251;
+  --c-panel: 255 255 255;
+  --c-panel2: 240 242 248;
+  --c-line: 226 229 239;
+  --c-line2: 205 210 226;
+  --c-text: 30 34 56;
+  --c-soft: 58 64 92;
+  --c-muted: 90 97 126;
+  --c-placeholder: 124 131 158;
+  --c-accent-text: 79 52 214;
+  --c-success: 4 120 87;
+  --c-warn: 161 98 7;
+  --c-danger: 190 18 60;
+}
+
+/* Areas that stay coloured in light mode (purple buttons, brand tiles, code): keep their text white. */
+html.light :is(.bg-accent, .btn-primary, .bg-whatsapp, .theme-fixed, [class~='from-accent'], [class~='from-[#0E7C4A]'], [class~='from-[#B45309]'], [class~='bg-[#229ED9]'], [class~='bg-[#25D366]'], [class~='bg-[#EC4899]'], [class~='bg-[#3B82F6]'], [class~='bg-[#070B17]'], [class~='bg-black/70']) {
+  --c-white: 255 255 255;
+}
+
+/* Dark tinted boxes get light tints */
+html.light .bg-\[\#0F3B2C\], html.light .alert-ok { background-color: #DCFCE7; }
+html.light .bg-\[\#3D2E0A\] { background-color: #FEF3C7; }
+html.light .bg-\[\#3A1520\], html.light .alert-error, html.light .btn-danger:hover { background-color: #FFE4E6; }
+html.light .bg-\[\#10294A\] { background-color: #DBEAFE; }
+html.light .bg-\[\#3A1530\] { background-color: #FCE7F3; }
+html.light .border-\[\#5B2333\], html.light .btn-danger { border-color: #FECDD3; }
+html.light .text-\[\#7DB8FF\] { color: #1D4ED8; }
+html.light .text-\[\#F9A8D4\] { color: #BE185D; }
+html.light .text-\[\#4ADE80\] { color: #15803D; }
+html.light .from-\[\#2A1F6B\]:not(.theme-fixed *, .theme-fixed) { --tw-gradient-from: #EDE9FE var(--tw-gradient-from-position); }
+html.light .from-\[\#1B1747\] { --tw-gradient-from: #F1EEFF var(--tw-gradient-from-position); }
+html.light .from-\[\#151B3A\] { --tw-gradient-from: #FFFFFF var(--tw-gradient-from-position); }
+html.light .from-\[\#2A3060\] { --tw-gradient-from: #C9BFFF var(--tw-gradient-from-position); }
+html.light .to-\[\#4A5290\] { --tw-gradient-to: #E4DEFF var(--tw-gradient-to-position); }
+html.light .text-gradient { background-image: linear-gradient(100deg, #1E1B4B 10%, #4C35C9 50%, #7C5CFF 85%); }
+html.light .auth-glow {
+  background:
+    radial-gradient(640px circle at 12% 8%, rgba(98, 70, 234, 0.16), transparent 60%),
+    radial-gradient(520px circle at 92% 85%, rgba(14, 124, 74, 0.1), transparent 60%);
+}
+html.light .auth-grid {
+  background-image:
+    linear-gradient(rgba(17, 20, 39, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(17, 20, 39, 0.05) 1px, transparent 1px);
+}
+html.light [class*='shadow-black'] { --tw-shadow-color: rgb(30 34 56 / 0.12); }
 
 html {
   scroll-behavior: smooth;

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import Logo from './Logo';
+import ThemeToggle from './ThemeToggle';
 import SideNav, { type NavItem } from './SideNav';
 import { logout } from '@/app/actions/auth';
 import { site, telegramLink, whatsappLink } from '@/lib/site';
@@ -58,6 +59,7 @@ export default function AppShell({
               <span className="font-display text-[15px] font-bold text-white">{naira(balance)}</span>
             </Link>
           )}
+          <ThemeToggle />
           <div className="min-w-0 text-right">
             <div className="truncate font-semibold text-white">{user.name}</div>
             <div className="hidden truncate text-[13px] text-muted sm:block">{user.email}</div>

@@ -45,7 +45,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
         <PrintButton />
       </div>
 
-      <article className="mx-auto max-w-2xl overflow-hidden rounded-3xl bg-white text-[#0B1020] shadow-2xl shadow-black/50 print:max-w-none print:rounded-none print:shadow-none">
+      <article className="theme-fixed mx-auto max-w-2xl overflow-hidden rounded-3xl bg-white text-[#0B1020] shadow-2xl shadow-black/50 print:max-w-none print:rounded-none print:shadow-none">
         <header className="flex flex-wrap items-start justify-between gap-6 bg-gradient-to-br from-[#2A1F6B] to-[#0B1020] p-8 text-white print:bg-none print:text-[#0B1020]">
           <div className="flex items-center gap-3">
             <LogoMark size={40} />

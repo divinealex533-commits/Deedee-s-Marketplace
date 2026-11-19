@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { LayoutDashboard, Menu } from 'lucide-react';
 import Logo from './Logo';
+import ThemeToggle from './ThemeToggle';
 import { getSession } from '@/lib/auth';
 
 const links = [
@@ -31,6 +32,7 @@ export default async function SiteHeader() {
         </div>
 
         <div className="flex items-center gap-2">
+          <span className="hidden md:flex"><ThemeToggle /></span>
           {session ? (
             <Link href={dash} className="btn btn-primary whitespace-nowrap px-4 sm:px-5"><LayoutDashboard className="h-4 w-4" aria-hidden="true" /><span className="hidden sm:inline">My dashboard</span><span className="sm:hidden">Dashboard</span></Link>
           ) : (
@@ -51,6 +53,7 @@ export default async function SiteHeader() {
                   {l.label}
                 </Link>
               ))}
+              <div className="mt-1 border-t border-line pt-1"><ThemeToggle variant="row" /></div>
               {!session && (
                 <Link href="/login" className="mt-1 block rounded-xl border-t border-line px-4 py-3 text-[15px] font-semibold text-white hover:bg-line">
                   Log in

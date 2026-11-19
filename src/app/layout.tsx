@@ -15,8 +15,14 @@ export const viewport: Viewport = { themeColor: '#0B1020' };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Apply the saved light/dark choice before the page paints (no flash) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "try{if(localStorage.getItem('dd-theme')==='light'){document.documentElement.classList.add('light');var m=document.querySelector('meta[name=theme-color]');m&&m.setAttribute('content','#F5F6FB')}}catch(e){}",
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
