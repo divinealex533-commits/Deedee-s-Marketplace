@@ -38,6 +38,8 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) return fail(422, 'validation_error', parsed.error.issues[0]!.message);
   const b = parsed.data;
 
+  if (auth.user.role === 'ADMIN') return fail(403, 'admin_cannot_buy', 'Admin accounts can’t buy products.');
+
   const result = await purchase({
     userId: auth.user.id,
     listingId: b.product_id,

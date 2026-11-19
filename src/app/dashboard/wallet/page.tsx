@@ -5,6 +5,7 @@ import { requireUser } from '@/lib/auth';
 import { formatDate, naira, signedNaira } from '@/lib/format';
 import { site, whatsappLink } from '@/lib/site';
 import CopyButton from '@/components/CopyButton';
+import { displayBalance } from '@/lib/displayBalance';
 import DepositForm from './DepositForm';
 
 export const metadata = { title: 'Wallet' };
@@ -37,7 +38,7 @@ export default async function WalletPage() {
         </div>
         <div className="rounded-2xl bg-accent px-6 py-4 text-white">
           <div className="text-sm text-white/90">Available balance</div>
-          <div className="font-display text-3xl font-bold">{naira(user.balance)}</div>
+          <div className="font-display text-3xl font-bold">{naira(displayBalance(user))}</div>
         </div>
       </div>
 

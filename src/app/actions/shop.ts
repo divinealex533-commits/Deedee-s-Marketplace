@@ -16,6 +16,7 @@ export async function buy(fd: FormData) {
   const user = await requireUser();
   const listingId = String(fd.get('listingId') ?? '');
   const back = `/dashboard/marketplace/${listingId}`;
+  if (user.role === 'ADMIN') redirect(`${back}?error=admin`);
   if (!rateLimit(`buy:${user.id}`, 20, 60 * 1000)) redirect(`${back}?error=slow`);
 
   const result = await purchase({

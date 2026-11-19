@@ -4,6 +4,7 @@ import { requireUser } from '@/lib/auth';
 import { autoCompleteOrders } from '@/lib/orders';
 import { formatDate, naira, signedNaira } from '@/lib/format';
 import StatCard from '@/components/StatCard';
+import { displayBalance } from '@/lib/displayBalance';
 import OrderCard from './OrderCard';
 
 export const metadata = { title: 'Dashboard' };
@@ -59,7 +60,7 @@ export default async function DashboardPage({
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-accent to-[#4A30C9] p-5 text-white shadow-xl shadow-accent/25">
           <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/15 blur-2xl" />
           <div className="text-sm text-white/90">Wallet balance</div>
-          <div className="mt-2 font-display text-[32px] font-bold leading-tight">{naira(user.balance)}</div>
+          <div className="mt-2 font-display text-[32px] font-bold leading-tight">{naira(displayBalance(user))}</div>
           <Link href="/dashboard/wallet" className="btn btn-sm mt-3 bg-white text-[#1A1440] hover:bg-white/90">Fund wallet</Link>
         </div>
         <StatCard label="Accounts bought" value={orders.length} emoji="🛍️" tone="green" sub={`${naira(spent)} spent`} />

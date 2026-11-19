@@ -18,6 +18,7 @@ const ERRORS: Record<string, string> = {
   stock: 'Sorry, one or more of those just sold. Please pick again.',
   gone: 'That listing is no longer available.',
   slow: 'You’re going a little fast. Wait a moment and try again.',
+  admin: 'You’re logged in as the admin. Admin accounts can’t buy products: use a normal customer account to test buying.',
   too_many: 'You already have 3 unpaid checkouts. Finish or cancel one in My orders first.',
 };
 
@@ -108,6 +109,9 @@ export default async function ListingPage({
               ? 'Tick the exact ones you want, or just set a quantity.'
               : 'Previews are partly hidden until you buy. Tick specific ones, or just set a quantity.'}
           </p>
+          {user.role === 'ADMIN' ? (
+            <p className="alert-error mt-4">You’re logged in as the admin, so buying is turned off. Use a normal customer account to test buying.</p>
+          ) : (
           <BuyPanel
             listingId={listing.id}
             price={listing.price}
@@ -116,6 +120,7 @@ export default async function ListingPage({
             showLogin={listing.showLogin}
             items={items.map((c) => ({ id: c.id, preview: previewLogin(c.login, listing.showLogin), url: c.previewUrl }))}
           />
+          )}
         </section>
       </div>
 

@@ -4,6 +4,7 @@ import { requireUser } from '@/lib/auth';
 import { naira } from '@/lib/format';
 import ProductCard from '@/components/ProductCard';
 import { PlatformTile } from '@/components/PlatformIcon';
+import { displayBalance } from '@/lib/displayBalance';
 import { ratingsByListing } from '@/lib/reviews';
 
 export const metadata = { title: 'Marketplace' };
@@ -44,7 +45,7 @@ export default async function MarketplacePage({
         </div>
         <div className="rounded-xl border border-line bg-panel px-4 py-2.5 text-sm">
           <span className="text-muted">Wallet: </span>
-          <span className="font-semibold text-white">{naira(user.balance)}</span>
+          <span className="font-semibold text-white">{naira(displayBalance(user))}</span>
           <Link href="/dashboard/wallet" className="ml-3 font-semibold text-accent-text">Top up</Link>
         </div>
       </div>

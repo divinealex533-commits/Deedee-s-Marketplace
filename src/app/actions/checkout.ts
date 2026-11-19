@@ -13,6 +13,7 @@ export async function beginCheckout(fd: FormData) {
   const user = await requireUser();
   const listingId = String(fd.get('listingId') ?? '');
   const back = `/dashboard/marketplace/${listingId}`;
+  if (user.role === 'ADMIN') redirect(`${back}?error=admin`);
   if (!rateLimit(`checkout:${user.id}`, 15, 60 * 1000)) redirect(`${back}?error=slow`);
 
   const result = await startCheckout({
@@ -50,6 +51,7 @@ export async function submitCheckoutProof(_: FormState, fd: FormData): Promise<F
 
 export async function payWithWallet(_: FormState, fd: FormData): Promise<FormState> {
   const user = await requireUser();
+  if (user.role === 'ADMIN') return { error: 'Admin accounts can’t buy products.' };
   const id = String(fd.get('checkoutId') ?? '');
   const r = await payCheckoutWithWallet(user.id, id);
   if (!r.ok) return { error: r.error };
