@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { Clock, ShoppingBag } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
 import { autoCompleteOrders } from '@/lib/orders';
@@ -63,8 +62,8 @@ export default async function DashboardPage({
           <div className="mt-2 font-display text-[32px] font-bold leading-tight">{naira(user.balance)}</div>
           <Link href="/dashboard/wallet" className="btn btn-sm mt-3 bg-white text-[#1A1440] hover:bg-white/90">Fund wallet</Link>
         </div>
-        <StatCard label="Accounts bought" value={orders.length} icon={ShoppingBag} tone="green" sub={`${naira(spent)} spent`} />
-        <StatCard label="Awaiting your confirmation" value={awaiting} icon={Clock} tone="amber" sub="Check them and confirm" />
+        <StatCard label="Accounts bought" value={orders.length} emoji="🛍️" tone="green" sub={`${naira(spent)} spent`} />
+        <StatCard label="Awaiting your confirmation" value={awaiting} emoji="⏳" tone="amber" sub="Check them and confirm" />
       </section>
 
       <section aria-labelledby="mine" className="card p-6">

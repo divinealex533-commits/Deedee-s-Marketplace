@@ -137,3 +137,6 @@ body {
     @apply border-t border-line px-4 py-3 align-middle;
   }
 }
+
+/* Full-colour emoji icons (Apple / Windows / Android) */
+.emoji { font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; }

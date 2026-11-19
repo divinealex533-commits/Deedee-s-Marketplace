@@ -2,27 +2,24 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  Banknote, Code2, CreditCard, Gift, KeyRound, Landmark, Package, Star, LayoutDashboard, LifeBuoy, Settings, ShoppingBag, ShoppingCart, Users, Wallet,
-} from 'lucide-react';
 
 const ICONS = {
-  dashboard: LayoutDashboard,
-  market: ShoppingCart,
-  wallet: Wallet,
-  support: LifeBuoy,
-  settings: Settings,
-  pool: KeyRound,
-  orders: ShoppingBag,
-  users: Users,
-  deposits: Banknote,
-  banks: Landmark,
-  api: Code2,
-  gift: Gift,
-  payments: CreditCard,
-  myorders: Package,
-  reviews: Star,
-};
+  dashboard: '🏠',
+  market: '🛍️',
+  wallet: '💰',
+  support: '💬',
+  settings: '⚙️',
+  pool: '🔑',
+  orders: '🧾',
+  users: '👥',
+  deposits: '💵',
+  banks: '🏦',
+  api: '🧩',
+  gift: '🎁',
+  payments: '💳',
+  myorders: '📦',
+  reviews: '⭐',
+} as const;
 
 export type NavItem = { href: string; label: string; icon: keyof typeof ICONS; exact?: boolean };
 
@@ -31,7 +28,6 @@ export default function SideNav({ items }: { items: NavItem[] }) {
   return (
     <nav aria-label="Main" className="-mx-1 flex gap-1 overflow-x-auto px-1 lg:flex-col lg:overflow-visible">
       {items.map((item) => {
-        const Icon = ICONS[item.icon];
         const active = item.exact ? path === item.href : path === item.href || path.startsWith(item.href + '/');
         return (
           <Link
@@ -43,8 +39,13 @@ export default function SideNav({ items }: { items: NavItem[] }) {
             }`}
           >
             {active && <span aria-hidden="true" className="absolute inset-y-2 left-0 hidden w-1 rounded-r-full bg-accent lg:block" />}
-            <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${active ? 'bg-accent text-white shadow-lg shadow-accent/40' : 'bg-line/60'}`}>
-              <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
+            <span
+              aria-hidden="true"
+              className={`emoji flex h-9 w-9 items-center justify-center rounded-xl text-[22px] leading-none transition ${
+                active ? 'bg-white/15 shadow-lg shadow-accent/30 ring-1 ring-white/20' : 'bg-white/[0.04]'
+              }`}
+            >
+              {ICONS[item.icon]}
             </span>
             {item.label}
           </Link>

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { AlertTriangle, ArrowRight, Banknote, CreditCard, ExternalLink, Eye, KeyRound, Plus, ShoppingBag, UserPlus, Users } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Banknote, CreditCard, ExternalLink, Plus } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { formatDate, initials, lagosDay, naira, startOfLagosDay, timeAgo } from '@/lib/format';
 import StatCard from '@/components/StatCard';
@@ -121,17 +121,17 @@ export default async function AdminOverview() {
       )}
 
       <section aria-label="Today at a glance" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <StatCard label="Total users" value={totalUsers.toLocaleString()} icon={Users} tone="violet" sub={`${weekTotal} joined this week`} />
+        <StatCard label="Total users" value={totalUsers.toLocaleString()} emoji="👥" tone="violet" sub={`${weekTotal} joined this week`} />
         <StatCard
           label="New users today"
           value={newToday}
-          icon={UserPlus}
+          emoji="🙋"
           tone="green"
           sub={<span className={diff >= 0 ? 'text-success' : 'text-danger'}>{diff >= 0 ? '▲ +' : '▼ '}{diff} vs yesterday</span>}
         />
-        <StatCard label="Visitors today" value={visitorsToday} icon={Eye} tone="blue" sub={<span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-success" />{onlineNow} online now</span>} />
-        <StatCard label="Sales today" value={naira(salesToday._sum.amount ?? 0)} icon={ShoppingBag} tone="pink" sub={`${ordersToday} order${ordersToday === 1 ? '' : 's'}`} />
-        <StatCard label="In stock" value={inStock.toLocaleString()} icon={KeyRound} tone="amber" sub={`${naira(salesAll._sum.amount ?? 0)} sold all-time`} />
+        <StatCard label="Visitors today" value={visitorsToday} emoji="👀" tone="blue" sub={<span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-success" />{onlineNow} online now</span>} />
+        <StatCard label="Sales today" value={naira(salesToday._sum.amount ?? 0)} emoji="🛒" tone="pink" sub={`${ordersToday} order${ordersToday === 1 ? '' : 's'}`} />
+        <StatCard label="In stock" value={inStock.toLocaleString()} emoji="🔑" tone="amber" sub={`${naira(salesAll._sum.amount ?? 0)} sold all-time`} />
       </section>
 
       <div className="flex flex-wrap gap-5">

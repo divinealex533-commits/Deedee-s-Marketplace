@@ -14,12 +14,14 @@ export default function StatCard({
   value,
   sub,
   icon: Icon,
+  emoji,
   tone = 'violet',
 }: {
   label: string;
   value: ReactNode;
   sub?: ReactNode;
   icon?: LucideIcon;
+  emoji?: string;
   tone?: keyof typeof TONES;
 }) {
   const t = TONES[tone];
@@ -28,7 +30,11 @@ export default function StatCard({
       <div aria-hidden="true" className={`pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full blur-2xl ${t.glow}`} />
       <div className="relative flex items-start justify-between gap-3">
         <span className="text-sm font-medium text-muted">{label}</span>
-        {Icon && (
+        {emoji ? (
+          <span aria-hidden="true" className={`emoji flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[24px] leading-none ${t.tile}`}>
+            {emoji}
+          </span>
+        ) : Icon && (
           <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${t.tile}`}>
             <Icon className="h-5 w-5" aria-hidden="true" />
           </span>

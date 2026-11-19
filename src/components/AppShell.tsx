@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { LogOut } from 'lucide-react';
 import Logo from './Logo';
 import SideNav, { type NavItem } from './SideNav';
 import { logout } from '@/app/actions/auth';
@@ -39,7 +38,7 @@ export default function AppShell({
           </div>
           <form action={logout}>
             <button type="submit" className="flex w-full items-center gap-2.5 rounded-xl px-3 py-3 text-[15px] font-medium text-danger hover:bg-line">
-              <LogOut className="h-[18px] w-[18px]" aria-hidden="true" /> Log out
+              <span aria-hidden="true" className="emoji flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.04] text-[22px] leading-none">🚪</span> Log out
             </button>
           </form>
         </div>
@@ -57,7 +56,7 @@ export default function AppShell({
           </div>
           <form action={logout} className="lg:hidden">
             <button type="submit" aria-label="Log out" className="flex h-11 w-11 items-center justify-center rounded-xl text-danger hover:bg-line">
-              <LogOut className="h-5 w-5" aria-hidden="true" />
+              <span aria-hidden="true" className="emoji text-[22px] leading-none">🚪</span>
             </button>
           </form>
         </header>
