@@ -3,12 +3,14 @@ import Logo from './Logo';
 import SideNav, { type NavItem } from './SideNav';
 import { logout } from '@/app/actions/auth';
 import { site, whatsappLink } from '@/lib/site';
-import { initials } from '@/lib/format';
+import Link from 'next/link';
+import { initials, naira } from '@/lib/format';
 
 /** Sidebar + header layout shared by the customer and admin dashboards. */
 export default function AppShell({
   items,
   user,
+  balance,
   badge,
   homeHref,
   banner,
@@ -16,11 +18,13 @@ export default function AppShell({
 }: {
   items: NavItem[];
   user: { name: string; email: string };
+  balance?: number;
   badge: string;
   homeHref: string;
   banner?: ReactNode;
   children: ReactNode;
 }) {
+  const walletHref = '/dashboard/wallet';
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
       <aside className="relative flex flex-col gap-6 border-b border-line bg-gradient-to-b from-panel2 to-ink p-4 lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 lg:gap-8 lg:border-b-0 lg:border-r lg:p-5">
@@ -47,9 +51,15 @@ export default function AppShell({
       <div className="min-w-0 flex-1">
         {banner}
         <header className="sticky top-0 z-30 flex items-center justify-end gap-3 border-b border-line bg-ink/80 px-5 py-3.5 backdrop-blur-xl sm:px-8">
-          <div className="text-right">
-            <div className="font-semibold text-white">{user.name}</div>
-            <div className="text-[13px] text-muted">{user.email}</div>
+          {balance !== undefined && (
+            <Link href={walletHref} className="mr-auto flex items-center gap-2 rounded-xl border border-line2 bg-panel px-3 py-2 hover:border-accent/60">
+              <span aria-hidden="true" className="emoji text-lg leading-none">💰</span>
+              <span className="font-display text-[15px] font-bold text-white">{naira(balance)}</span>
+            </Link>
+          )}
+          <div className="min-w-0 text-right">
+            <div className="truncate font-semibold text-white">{user.name}</div>
+            <div className="hidden truncate text-[13px] text-muted sm:block">{user.email}</div>
           </div>
           <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-accent to-[#8B72FF] font-bold text-white ring-2 ring-accent/30" aria-hidden="true">
             {initials(user.name)}

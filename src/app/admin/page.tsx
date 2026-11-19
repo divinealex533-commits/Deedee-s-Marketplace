@@ -5,6 +5,7 @@ import { formatDate, initials, lagosDay, naira, startOfLagosDay, timeAgo } from 
 import StatCard from '@/components/StatCard';
 import { requireAdmin } from '@/lib/auth';
 import { autoCompleteOrders } from '@/lib/orders';
+import { displayBalance } from '@/lib/displayBalance';
 import OrderStatus from '@/components/OrderStatus';
 
 export const metadata = { title: 'Overview' };
@@ -72,7 +73,14 @@ export default async function AdminOverview() {
           <div>
             <p className="text-sm font-medium text-accent-text">{greeting} · {todayLabel}</p>
             <h1 className="mt-1 font-display text-3xl font-bold text-white sm:text-4xl">Welcome back, {firstName}</h1>
-            <p className="mt-2 text-soft">
+            <div className="mt-4 inline-flex items-center gap-3 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 backdrop-blur">
+              <span aria-hidden="true" className="emoji text-2xl leading-none">💰</span>
+              <div>
+                <div className="text-[12px] font-medium uppercase tracking-wider text-accent-text">Wallet balance</div>
+                <div className="font-display text-2xl font-bold text-white">{naira(displayBalance(admin))}</div>
+              </div>
+            </div>
+            <p className="mt-3 text-soft">
               {naira(salesToday._sum.amount ?? 0)} in sales today from {ordersToday} order{ordersToday === 1 ? '' : 's'} · {visitorsToday} visitor{visitorsToday === 1 ? '' : 's'}
             </p>
           </div>

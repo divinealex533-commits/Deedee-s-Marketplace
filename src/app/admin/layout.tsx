@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import AppShell from '@/components/AppShell';
 import type { NavItem } from '@/components/SideNav';
+import { displayBalance } from '@/lib/displayBalance';
 import { requireAdmin } from '@/lib/auth';
 
 export const metadata = { title: { default: 'Admin', template: '%s · Admin' } };
@@ -20,7 +21,7 @@ const items: NavItem[] = [
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const admin = await requireAdmin();
   return (
-    <AppShell items={items} user={admin} badge="Admin" homeHref="/admin">
+    <AppShell items={items} user={admin} balance={displayBalance(admin)} badge="Admin" homeHref="/admin">
       {children}
     </AppShell>
   );
