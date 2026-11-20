@@ -29,7 +29,7 @@ export default function RevealCell({ id }: { id: string }) {
       <button type="button" onClick={toggle} className="rounded-md border border-line2 px-2 py-1 font-sans text-xs font-semibold text-accent-text hover:bg-line">
         {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-label="Loading" /> : shown ? 'Hide' : 'Show'}
       </button>
-      {shown && secret?.notes && <span className="ml-1 font-sans text-xs text-muted">Notes: {secret.notes}</span>}
+      {shown && secret?.notes && <span className="ml-1 font-sans text-xs text-muted">Details: {secret.notes}</span>}
     </div>
   );
 }

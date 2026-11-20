@@ -75,7 +75,7 @@ function SingleForm({ listings, defaultListing }: { listings: { id: string; labe
   useEffect(() => {
     if (!state?.ok) return;
     const f = ref.current;
-    f?.querySelectorAll<HTMLInputElement>('input[name="login"],input[name="password"],input[name="notes"],input[name="previewUrl"]').forEach((el) => (el.value = ''));
+    f?.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[name="login"],input[name="password"],textarea[name="notes"],input[name="previewUrl"]').forEach((el) => (el.value = ''));
     setRows([0]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
@@ -103,15 +103,22 @@ function SingleForm({ listings, defaultListing }: { listings: { id: string; labe
               <PasswordInput id={`cred-password-${id}`} name="password" autoComplete="new-password" />
             </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label htmlFor={`notes-${id}`} className="label">Recovery email / notes (optional)</label>
-              <input id={`notes-${id}`} name="notes" autoComplete="off" className="input" />
-            </div>
-            <div>
-              <label htmlFor={`preview-${id}`} className="label">Preview link or number (optional)</label>
-              <input id={`preview-${id}`} name="previewUrl" type="text" autoComplete="off" placeholder="https://… or 17146765378" className="input" />
-            </div>
+          <div>
+            <label htmlFor={`notes-${id}`} className="label">Additional details (optional)</label>
+            <textarea
+              id={`notes-${id}`}
+              name="notes"
+              rows={3}
+              autoComplete="off"
+              spellCheck={false}
+              placeholder={'2FA / backup codes, email + email password, recovery email, cookies…'}
+              className="input font-mono text-sm"
+            />
+            <p className="mt-1 text-[13px] text-muted">Locked like the password. Only the buyer sees it, in My orders, after you confirm their payment.</p>
+          </div>
+          <div>
+            <label htmlFor={`preview-${id}`} className="label">Preview link or number (optional)</label>
+            <input id={`preview-${id}`} name="previewUrl" type="text" autoComplete="off" placeholder="https://… or 17146765378" className="input" />
           </div>
         </fieldset>
       ))}
@@ -191,11 +198,11 @@ function BulkForm({ listings, defaultListing }: { listings: { id: string; label:
           value={text}
           onChange={(e) => setText(e.target.value)}
           spellCheck={false}
-          placeholder={'page_one@mail.com:Pass1234\n17146765378:Secret987:recovery@mail.com\npage_three|Hello2026|https://tiktok.com/@page_three'}
+          placeholder={'page_one@mail.com:Pass1234\n17146765378:Secret987:2FA ABCD EFGH recovery@mail.com\npage_three|Hello2026|https://tiktok.com/@page_three'}
           className="input font-mono text-sm"
         />
         <p className="mt-1.5 text-[13px] text-muted">
-          Format: <span className="font-mono">login:password</span>, optionally <span className="font-mono">:notes</span> and a link. You can also use <span className="font-mono">|</span> or paste straight from a spreadsheet. Duplicates are skipped.
+          Format: <span className="font-mono">login:password</span>, optionally <span className="font-mono">:extra details</span> (2FA, email…) and a link. You can also use <span className="font-mono">|</span> or paste straight from a spreadsheet. Duplicates are skipped.
         </p>
       </div>
 

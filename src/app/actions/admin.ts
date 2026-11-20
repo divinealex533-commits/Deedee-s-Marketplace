@@ -113,7 +113,7 @@ export async function addCredential(_: FormState, fd: FormData): Promise<FormSta
     const password = passwords[i] ?? '';
     if (!login && !password) continue; // an empty extra box is fine
     if (!login || !password) return { error: `Credential ${i + 1}: enter both the login and the password.` };
-    rows.push({ login, password, notes: (notesAll[i] ?? '').trim(), previewUrl: cleanPreview(previews[i] ?? '') });
+    rows.push({ login, password, notes: (notesAll[i] ?? '').trim().slice(0, 2000), previewUrl: cleanPreview(previews[i] ?? '') });
   }
   if (!rows.length) return { error: 'Enter the login and password.' };
 

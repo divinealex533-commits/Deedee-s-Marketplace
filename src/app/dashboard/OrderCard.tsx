@@ -74,9 +74,10 @@ export default function OrderCard(props: {
             <CopyButton value={creds.password} label="Password" />
           </div>
           {creds.notes && (
-            <div className="flex gap-2">
-              <dt className="w-24 shrink-0 text-muted">Notes</dt>
-              <dd className="min-w-0 flex-1 break-words font-sans text-soft">{creds.notes}</dd>
+            <div className="flex items-start gap-2 border-t border-line pt-2">
+              <dt className="w-24 shrink-0 text-muted">Details</dt>
+              <dd className="min-w-0 flex-1 whitespace-pre-wrap break-all text-white">{creds.notes}</dd>
+              <CopyButton value={creds.notes} label="Details" />
             </div>
           )}
         </dl>
