@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ChangeEvent } from 'react';
-import { ImagePlus, Upload } from 'lucide-react';
+import { ClipboardPaste, ExternalLink, ImagePlus, Plus, Upload, X } from 'lucide-react';
 import { addBulk, addCredential, createListing, setListingImage } from '@/app/actions/admin';
 import FormMessage from '@/components/FormMessage';
 import PasswordInput from '@/components/PasswordInput';
@@ -60,54 +60,93 @@ function ListingSelect({ listings, defaultListing, id }: { listings: { id: strin
 
 function SingleForm({ listings, defaultListing }: { listings: { id: string; label: string }[]; defaultListing?: string }) {
   const { state, pending, onSubmit, ref } = useActionForm(addCredential);
-  // Keep the chosen listing after saving, but clear the login fields.
-  const clear = () => {
-    const f = ref.current;
-    if (!f) return;
-    for (const name of ['login', 'password', 'notes', 'previewUrl']) {
-      const el = f.elements.namedItem(name) as HTMLInputElement | null;
-      if (el) el.value = '';
-    }
+  // Each row is one credential; "Add another credential" opens a new row.
+  const [rows, setRows] = useState<number[]>([0]);
+  const [nextId, setNextId] = useState(1);
+  const addRow = () => {
+    setRows((r) => [...r, nextId]);
+    setNextId((n) => n + 1);
+    // focus the new row's login box once it renders
+    setTimeout(() => (document.getElementById(`login-${nextId}`) as HTMLInputElement | null)?.focus(), 50);
   };
+  const removeRow = (id: number) => setRows((r) => (r.length > 1 ? r.filter((x) => x !== id) : r));
+
+  // After saving: keep the chosen listing, go back to one empty row.
   useEffect(() => {
-    if (state?.ok) clear();
+    if (!state?.ok) return;
+    const f = ref.current;
+    f?.querySelectorAll<HTMLInputElement>('input[name="login"],input[name="password"],input[name="notes"],input[name="previewUrl"]').forEach((el) => (el.value = ''));
+    setRows([0]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
   return (
     <form ref={ref} onSubmit={onSubmit} className="space-y-4">
       <ListingSelect listings={listings} defaultListing={defaultListing} id="single-listing" />
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="login" className="label">Username or email</label>
-          <input id="login" name="login" required autoComplete="off" className="input" />
-        </div>
-        <div>
-          <label htmlFor="cred-password" className="label">Password</label>
-          <PasswordInput id="cred-password" name="password" required autoComplete="new-password" />
-        </div>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="notes" className="label">Recovery email / notes (optional)</label>
-          <input id="notes" name="notes" autoComplete="off" className="input" />
-        </div>
-        <div>
-          <label htmlFor="previewUrl" className="label">Preview link (optional)</label>
-          <input id="previewUrl" name="previewUrl" type="url" inputMode="url" placeholder="https://instagram.com/thepage" autoComplete="off" className="input" />
-        </div>
-      </div>
-      <p className="-mt-1 text-[13px] text-muted">Customers can open the preview link before buying, e.g. the profile page or a screenshot.</p>
+      {rows.map((id, i) => (
+        <fieldset key={id} className="space-y-4 rounded-2xl border border-line bg-panel2/60 p-4">
+          <div className="flex items-center justify-between">
+            <legend className="text-sm font-semibold text-white">Credential {i + 1}</legend>
+            {rows.length > 1 && (
+              <button type="button" onClick={() => removeRow(id)} className="inline-flex items-center gap-1 text-sm text-danger hover:underline">
+                <X className="h-4 w-4" aria-hidden="true" /> Remove
+              </button>
+            )}
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor={`login-${id}`} className="label">Username, email or number</label>
+              <input id={`login-${id}`} name="login" autoComplete="off" className="input" />
+            </div>
+            <div>
+              <label htmlFor={`cred-password-${id}`} className="label">Password</label>
+              <PasswordInput id={`cred-password-${id}`} name="password" autoComplete="new-password" />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor={`notes-${id}`} className="label">Recovery email / notes (optional)</label>
+              <input id={`notes-${id}`} name="notes" autoComplete="off" className="input" />
+            </div>
+            <div>
+              <label htmlFor={`preview-${id}`} className="label">Preview link or number (optional)</label>
+              <input id={`preview-${id}`} name="previewUrl" type="text" autoComplete="off" placeholder="https://… or 17146765378" className="input" />
+            </div>
+          </div>
+        </fieldset>
+      ))}
+      <button type="button" onClick={addRow} className="btn btn-ghost w-full border-dashed">
+        <Plus className="h-4 w-4" aria-hidden="true" /> Add another credential
+      </button>
+      <p className="text-[13px] text-muted">Customers see the preview before buying: a link opens (e.g. the profile page), a number or ID is shown as text.</p>
       <FormMessage state={state} />
-      <SubmitButton pending={pending} pendingText="Adding…">Add credential</SubmitButton>
+      <SubmitButton pending={pending} pendingText="Uploading…">
+        <Upload className="h-4 w-4" aria-hidden="true" /> Upload {rows.length > 1 ? `${rows.length} credentials` : 'credential'}
+      </SubmitButton>
     </form>
   );
+}
+
+/** Splits pasted lines the same way the server does, so the admin sees each credential before uploading. */
+function parseBulk(text: string) {
+  const items: { login: string; password: string; extra: string; preview: string }[] = [];
+  let bad = 0;
+  for (const raw of text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)) {
+    const found = raw.match(/https?:\/\/\S+/i)?.[0] ?? '';
+    const line = found ? raw.replace(found, '').replace(/[|:\t\s]+$/, '').trim() : raw;
+    const sep = line.includes('|') ? '|' : line.includes('\t') ? '\t' : ':';
+    const [login, password, ...rest] = line.split(sep).map((p) => p.trim());
+    if (!login || !password) bad++;
+    else items.push({ login, password, extra: rest.join(' · '), preview: found });
+  }
+  return { items, bad };
 }
 
 function BulkForm({ listings, defaultListing }: { listings: { id: string; label: string }[]; defaultListing?: string }) {
   const { state, pending, onSubmit } = useActionForm(addBulk);
   const [text, setText] = useState('');
-  const count = text.split(/\r?\n/).filter((l) => /^[^:|\t]+[:|\t].+/.test(l.trim())).length;
+  const { items, bad } = parseBulk(text);
+  const count = items.length;
 
   useEffect(() => {
     if (state?.ok) setText('');
@@ -120,35 +159,70 @@ function BulkForm({ listings, defaultListing }: { listings: { id: string; label:
     setText((t) => (t ? t.trimEnd() + '\n' : '') + content);
     e.target.value = '';
   };
+  const paste = async () => {
+    try {
+      const clip = await navigator.clipboard.readText();
+      if (clip) setText((t) => (t ? t.trimEnd() + '\n' : '') + clip);
+    } catch {
+      document.getElementById('bulk')?.focus();
+    }
+  };
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <ListingSelect listings={listings} defaultListing={defaultListing} id="bulk-listing" />
       <div>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <label htmlFor="bulk" className="label">One per line: login:password or login:password:notes</label>
-          <label className="mb-1.5 inline-flex cursor-pointer items-center gap-1.5 text-sm font-medium text-accent-text">
-            <Upload className="h-4 w-4" aria-hidden="true" /> Upload .txt / .csv
-            <input type="file" accept=".txt,.csv,text/plain,text/csv" onChange={onFile} className="sr-only" />
-          </label>
+          <label htmlFor="bulk" className="label">Paste your credentials, one per line</label>
+          <div className="mb-1.5 flex gap-4">
+            <button type="button" onClick={paste} className="inline-flex items-center gap-1.5 text-sm font-medium text-accent-text">
+              <ClipboardPaste className="h-4 w-4" aria-hidden="true" /> Paste
+            </button>
+            <label className="inline-flex cursor-pointer items-center gap-1.5 text-sm font-medium text-accent-text">
+              <Upload className="h-4 w-4" aria-hidden="true" /> .txt / .csv
+              <input type="file" accept=".txt,.csv,text/plain,text/csv" onChange={onFile} className="sr-only" />
+            </label>
+          </div>
         </div>
         <textarea
           id="bulk"
           name="text"
-          rows={8}
+          rows={7}
           value={text}
           onChange={(e) => setText(e.target.value)}
           spellCheck={false}
-          placeholder={'page_one@mail.com:Pass1234:Fashion page https://instagram.com/page_one\npage_two:Secret987\npage_three|Hello2026|Food page|https://tiktok.com/@page_three'}
+          placeholder={'page_one@mail.com:Pass1234\n17146765378:Secret987:recovery@mail.com\npage_three|Hello2026|https://tiktok.com/@page_three'}
           className="input font-mono text-sm"
         />
         <p className="mt-1.5 text-[13px] text-muted">
-          {count} valid line{count === 1 ? '' : 's'} detected. Add a link (https://…) anywhere on a line to give that item a preview link. Duplicates are skipped.
+          Format: <span className="font-mono">login:password</span>, optionally <span className="font-mono">:notes</span> and a link. You can also use <span className="font-mono">|</span> or paste straight from a spreadsheet. Duplicates are skipped.
         </p>
       </div>
+
+      {(count > 0 || bad > 0) && (
+        <div className="rounded-2xl border border-line bg-panel2/60">
+          <div className="flex items-center justify-between border-b border-line px-4 py-2.5 text-sm">
+            <span className="font-semibold text-white">{count} credential{count === 1 ? '' : 's'} ready</span>
+            {bad > 0 && <span className="text-warn">{bad} line{bad === 1 ? '' : 's'} not understood (skipped)</span>}
+          </div>
+          <ol className="max-h-72 divide-y divide-line overflow-y-auto">
+            {items.slice(0, 200).map((it, i) => (
+              <li key={i} className="flex items-center gap-3 px-4 py-2 text-sm">
+                <span className="w-6 shrink-0 text-right text-muted">{i + 1}</span>
+                <span className="min-w-0 flex-1 truncate font-mono text-white">{it.login}</span>
+                <span className="shrink-0 font-mono text-muted">{'•'.repeat(Math.min(it.password.length, 8))}</span>
+                {it.extra && <span className="hidden max-w-[30%] truncate text-muted sm:block">{it.extra}</span>}
+                {it.preview && <ExternalLink className="h-3.5 w-3.5 shrink-0 text-accent-text" aria-label="Has preview link" />}
+              </li>
+            ))}
+          </ol>
+          {count > 200 && <p className="border-t border-line px-4 py-2 text-[13px] text-muted">…and {count - 200} more</p>}
+        </div>
+      )}
+
       <FormMessage state={state} />
-      <SubmitButton pending={pending} disabled={!count} pendingText="Encrypting and saving…">
-        Add {count || ''} credential{count === 1 ? '' : 's'}
+      <SubmitButton pending={pending} disabled={!count} pendingText="Encrypting and uploading…">
+        <Upload className="h-4 w-4" aria-hidden="true" /> Upload {count || ''} credential{count === 1 ? '' : 's'}
       </SubmitButton>
     </form>
   );

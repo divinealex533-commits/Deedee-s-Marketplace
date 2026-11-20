@@ -28,6 +28,14 @@ function cleanUrl(raw: string): string | null {
 
 const URL_IN_LINE = /https?:\/\/\S+/i;
 
+/** Preview can be a web link (instagram.com/page) or plain text such as a number or ID. */
+function cleanPreview(raw: string): string | null {
+  const v = raw.trim();
+  if (!v) return null;
+  const looksLikeLink = /^https?:\/\//i.test(v) || /^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(v);
+  return looksLikeLink ? cleanUrl(v) ?? v.slice(0, 300) : v.slice(0, 300);
+}
+
 // ── Listings ─────────────────────────────────────────
 
 const listingSchema = z.object({
@@ -91,25 +99,37 @@ export async function setListingImage(_: FormState, fd: FormData): Promise<FormS
 
 // ── Credentials pool ─────────────────────────────────
 
+/** The single form can hold several credentials ("Add another credential"); each field repeats. */
 export async function addCredential(_: FormState, fd: FormData): Promise<FormState> {
   await requireAdmin();
   const listingId = String(fd.get('listingId') ?? '');
-  const login = String(fd.get('login') ?? '').trim();
-  const password = String(fd.get('password') ?? '');
-  const notes = String(fd.get('notes') ?? '').trim();
-  const rawUrl = String(fd.get('previewUrl') ?? '').trim();
-  const previewUrl = cleanUrl(rawUrl);
+  if (!listingId) return { error: 'Choose which listing these credentials belong to.' };
 
-  if (!listingId) return { error: 'Choose which listing this credential belongs to.' };
-  if (rawUrl && !previewUrl) return { error: 'The preview link doesn’t look like a web address.' };
-  if (!login || !password) return { error: 'Enter both the login and the password.' };
+  const all = (k: string) => fd.getAll(k).map((v) => String(v));
+  const logins = all('login'), passwords = all('password'), notesAll = all('notes'), previews = all('previewUrl');
+  const rows: { login: string; password: string; notes: string; previewUrl: string | null }[] = [];
+  for (let i = 0; i < logins.length; i++) {
+    const login = (logins[i] ?? '').trim();
+    const password = passwords[i] ?? '';
+    if (!login && !password) continue; // an empty extra box is fine
+    if (!login || !password) return { error: `Credential ${i + 1}: enter both the login and the password.` };
+    rows.push({ login, password, notes: (notesAll[i] ?? '').trim(), previewUrl: cleanPreview(previews[i] ?? '') });
+  }
+  if (!rows.length) return { error: 'Enter the login and password.' };
 
-  const dup = await prisma.credential.findFirst({ where: { listingId, login } });
-  if (dup) return { error: `“${login}” is already in this listing.` };
+  const seen = new Set<string>();
+  for (const r of rows) {
+    if (seen.has(r.login)) return { error: `“${r.login}” is entered twice.` };
+    seen.add(r.login);
+  }
+  const dup = await prisma.credential.findFirst({ where: { listingId, login: { in: [...seen] } }, select: { login: true } });
+  if (dup) return { error: `“${dup.login}” is already in this listing.` };
 
-  await prisma.credential.create({ data: { listingId, login, previewUrl, secretEnc: encryptSecret({ password, notes }) } });
+  await prisma.credential.createMany({
+    data: rows.map((r) => ({ listingId, login: r.login, previewUrl: r.previewUrl, secretEnc: encryptSecret({ password: r.password, notes: r.notes }) })),
+  });
   revalidatePath('/admin', 'layout');
-  return { ok: `Added “${login}” to the pool.` };
+  return { ok: rows.length === 1 ? `Added “${rows[0]!.login}” to the pool.` : `Added ${rows.length} credentials to the pool.` };
 }
 
 /**

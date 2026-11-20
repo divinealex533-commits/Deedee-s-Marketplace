@@ -184,7 +184,9 @@ export default async function CredentialsPage({
                     <td className="break-all font-mono text-soft">{c.login}</td>
                     <td><RevealCell id={c.id} /></td>
                     <td>
-                      {c.previewUrl ? (
+                      {c.previewUrl && !/^https?:\/\//i.test(c.previewUrl) ? (
+                        <span className="font-mono text-sm text-soft">{c.previewUrl}</span>
+                      ) : c.previewUrl ? (
                         <a href={c.previewUrl} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex items-center gap-1 text-sm font-medium text-accent-text hover:text-white">
                           <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" /> Open
                         </a>

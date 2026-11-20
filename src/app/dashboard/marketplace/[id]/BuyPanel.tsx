@@ -76,7 +76,10 @@ export default function BuyPanel({
                 >
                   <input type="checkbox" checked={on} onChange={() => toggle(item.id)} className="h-5 w-5 shrink-0 accent-accent" />
                   <span className="min-w-0 flex-1 truncate font-mono text-[15px] tracking-wide text-white">{item.preview}</span>
-                  {item.url && (
+                  {item.url && !/^https?:\/\//i.test(item.url) && (
+                    <span className="shrink-0 rounded-lg bg-line px-2.5 py-1.5 font-mono text-xs text-soft">{item.url}</span>
+                  )}
+                  {item.url && /^https?:\/\//i.test(item.url) && (
                     <a
                       href={item.url}
                       target="_blank"
