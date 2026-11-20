@@ -12,9 +12,14 @@ import { naira } from '@/lib/format';
 const MAX = 50;
 
 /** "Buy now" on a product card: pick a quantity with − / +, then Checkout. */
-export default function QuickBuy({ id, title, platform, price, stock }: { id: string; title: string; platform: string; price: number; stock: number }) {
+export default function QuickBuy({
+  id, title, platform, price, stock, selected = [],
+}: { id: string; title: string; platform: string; price: number; stock: number; selected?: { id: string; preview: string }[] }) {
   const [open, setOpen] = useState(false);
-  const [qty, setQty] = useState(1);
+  const [qty, setQtyRaw] = useState(1);
+  const picked = selected.length > 0;
+  const setQty: typeof setQtyRaw = setQtyRaw;
+  const count = picked ? selected.length : qty;
   const limit = Math.min(MAX, stock);
 
   useEffect(() => {
@@ -35,7 +40,7 @@ export default function QuickBuy({ id, title, platform, price, stock }: { id: st
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setQty(1); setOpen(true); }}
         className="relative z-[2] inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-accent to-[#8B5CF6] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-accent/40 transition hover:shadow-accent/60"
       >
-        Buy now <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        {picked ? `Buy ${selected.length}` : 'Buy now'} <ArrowRight className="h-4 w-4" aria-hidden="true" />
       </button>
 
       {open && createPortal(
@@ -54,6 +59,16 @@ export default function QuickBuy({ id, title, platform, price, stock }: { id: st
               </div>
             </div>
 
+            {picked ? (
+              <div className="mt-6">
+                <div className="mb-2 font-medium text-soft">You picked {selected.length} item{selected.length === 1 ? '' : 's'}</div>
+                <ul className="max-h-40 space-y-1.5 overflow-y-auto">
+                  {selected.map((s) => (
+                    <li key={s.id} className="rounded-xl border border-line bg-panel2 px-3 py-2 font-mono text-[15px] text-white">{s.preview}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : (<>
             <div className="mt-6 flex items-center justify-between">
               <span className="font-medium text-soft">How many?</span>
               <div className="flex items-center rounded-2xl border border-line2 bg-panel2">
@@ -83,20 +98,22 @@ export default function QuickBuy({ id, title, platform, price, stock }: { id: st
                 </button>
               ))}
             </div>
+            </>)}
 
             <div className="mt-6 rounded-2xl border border-line2 bg-panel2 p-4">
               <div className="flex items-baseline justify-between">
                 <span className="text-muted">Total</span>
-                <span className="font-display text-3xl font-bold text-white">{naira(qty * price)}</span>
+                <span className="font-display text-3xl font-bold text-white">{naira(count * price)}</span>
               </div>
-              <div className="mt-1 text-[13px] text-muted">{qty} × {naira(price)}</div>
+              <div className="mt-1 text-[13px] text-muted">{count} × {naira(price)}</div>
             </div>
 
             <form action={beginCheckout} className="mt-5">
               <input type="hidden" name="listingId" value={id} />
-              <input type="hidden" name="qty" value={qty} />
+              <input type="hidden" name="qty" value={count} />
+              {picked && selected.map((s) => <input key={s.id} type="hidden" name="ids" value={s.id} />)}
               <SubmitButton className="btn btn-primary w-full py-4 text-base shadow-lg shadow-accent/30" pendingText="Reserving your items…">
-                Checkout · {naira(qty * price)}
+                Checkout · {naira(count * price)}
               </SubmitButton>
             </form>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-[13px] text-muted">

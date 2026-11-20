@@ -5,6 +5,7 @@ import { autoCompleteOrders } from '@/lib/orders';
 import { formatDate, naira, signedNaira } from '@/lib/format';
 import StatCard from '@/components/StatCard';
 import { displayBalance } from '@/lib/displayBalance';
+import WelcomeToast from '@/components/WelcomeToast';
 import OrderCard from './OrderCard';
 
 export const metadata = { title: 'Dashboard' };
@@ -40,9 +41,10 @@ export default async function DashboardPage({
 
   return (
     <>
+      {(sp.welcome === 'new' || sp.welcome === 'back') && <WelcomeToast kind={sp.welcome} name={firstName} />}
       <div>
         <h1 className="font-display text-3xl font-bold text-white">
-          {sp.welcome ? `Welcome, ${firstName}!` : `Welcome back, ${firstName}`}
+          {sp.welcome === 'new' ? `Welcome, ${firstName}!` : `Welcome back, ${firstName}`}
         </h1>
         <p className="mt-1 text-muted">Your purchases, wallet and activity at a glance.</p>
       </div>

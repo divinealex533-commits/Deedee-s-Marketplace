@@ -82,7 +82,7 @@ export async function signup(_: FormState, fd: FormData): Promise<FormState> {
   });
 
   await createSession(user, true);
-  redirect('/dashboard?welcome=1');
+  redirect('/dashboard?welcome=new');
 }
 
 export async function login(_: FormState, fd: FormData): Promise<FormState> {
@@ -122,7 +122,7 @@ export async function login(_: FormState, fd: FormData): Promise<FormState> {
   await createSession(user, remember);
 
   if (user.role === 'ADMIN') redirect(next.startsWith('/admin') ? next : '/admin');
-  redirect(next.startsWith('/dashboard') ? next : '/dashboard');
+  redirect(next.startsWith('/dashboard') && next !== '/dashboard' ? next : '/dashboard?welcome=back');
 }
 
 export async function logout() {

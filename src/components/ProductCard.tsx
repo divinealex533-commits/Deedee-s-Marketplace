@@ -4,7 +4,7 @@ import ListingImage from './ListingImage';
 import Stars from './Stars';
 import { PlatformBadge, platformStyle } from './PlatformIcon';
 import { naira } from '@/lib/format';
-import QuickBuy from './QuickBuy';
+import CardBuy, { type CardItem } from './CardBuy';
 
 export type ProductCardData = {
   id: string;
@@ -15,6 +15,10 @@ export type ProductCardData = {
   stock: number;
   imageAt: Date | null;
   rating?: { avg: number; count: number };
+  /** A few items in stock, shown on the card like a menu (preview + copy + eye). */
+  items?: CardItem[];
+  /** Logins shown in full (e.g. phone numbers), so they can be copied. */
+  showLogin?: boolean;
 };
 
 /** Product tile used on the homepage and in the customer marketplace. */
@@ -64,19 +68,19 @@ export default function ProductCard({ p, href }: { p: ProductCardData; href: str
             <span className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2 py-1 text-[11px] font-medium text-soft"><ShieldCheck className="h-3 w-3 text-success" aria-hidden="true" /> Protected</span>
           </div>
 
-          <div className="mt-auto flex items-end justify-between gap-3 border-t border-white/5 pt-4">
-            <div>
-              <div className="text-[11px] font-medium uppercase tracking-wider text-muted">Price</div>
-              <div className="font-display text-[26px] font-bold leading-none text-white">{naira(p.price)}</div>
-            </div>
-            {soldOut ? (
+          {soldOut ? (
+            <div className="mt-auto flex items-end justify-between gap-3 border-t border-white/5 pt-4">
+              <div>
+                <div className="text-[11px] font-medium uppercase tracking-wider text-muted">Price</div>
+                <div className="font-display text-[26px] font-bold leading-none text-white">{naira(p.price)}</div>
+              </div>
               <span className="inline-flex items-center gap-1.5 rounded-xl border border-line2 px-4 py-2.5 text-sm font-semibold text-soft">
                 View <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </span>
-            ) : (
-              <QuickBuy id={p.id} title={p.title} platform={p.platform} price={p.price} stock={p.stock} />
-            )}
-          </div>
+            </div>
+          ) : (
+            <CardBuy id={p.id} title={p.title} platform={p.platform} price={p.price} stock={p.stock} items={p.items ?? []} copyable={!!p.showLogin} />
+          )}
         </div>
       </div>
       {/* The whole card opens the product page; the Buy now button sits above this link */}
