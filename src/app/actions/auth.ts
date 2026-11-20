@@ -127,7 +127,7 @@ export async function login(_: FormState, fd: FormData): Promise<FormState> {
 
 export async function logout() {
   await destroySession();
-  redirect('/');
+  redirect('/?bye=1');
 }
 
 export async function changePassword(_: FormState, fd: FormData): Promise<FormState> {

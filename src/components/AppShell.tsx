@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
 import SideNav, { type NavItem } from './SideNav';
-import { logout } from '@/app/actions/auth';
+import LogoutButton from './LogoutButton';
 import { site, telegramLink, whatsappLink } from '@/lib/site';
 import Link from 'next/link';
 import { initials, naira } from '@/lib/format';
@@ -42,11 +42,7 @@ export default function AppShell({
             <a href={telegramLink} target="_blank" rel="noopener noreferrer" className="block hover:text-white">Telegram: @{site.telegram}</a>
             <a href={`tel:${site.phone}`} className="block hover:text-white">Call: {site.phoneDisplay}</a>
           </div>
-          <form action={logout}>
-            <button type="submit" className="flex w-full items-center gap-2.5 rounded-xl px-3 py-3 text-[15px] font-medium text-danger hover:bg-line">
-              <span aria-hidden="true" className="emoji flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.04] text-[22px] leading-none">🚪</span> Log out
-            </button>
-          </form>
+          <LogoutButton />
         </div>
       </aside>
 
@@ -67,11 +63,7 @@ export default function AppShell({
           <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-accent to-[#8B72FF] font-bold text-white ring-2 ring-accent/30" aria-hidden="true">
             {initials(user.name)}
           </div>
-          <form action={logout} className="lg:hidden">
-            <button type="submit" aria-label="Log out" className="flex h-11 w-11 items-center justify-center rounded-xl text-danger hover:bg-line">
-              <span aria-hidden="true" className="emoji text-[22px] leading-none">🚪</span>
-            </button>
-          </form>
+          <span className="lg:hidden"><LogoutButton compact /></span>
         </header>
         <main className="relative space-y-7 px-5 py-8 sm:px-8 lg:px-10">
           <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(600px_circle_at_80%_0%,rgba(98,70,234,0.12),transparent_70%)]" />
