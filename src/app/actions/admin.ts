@@ -154,7 +154,31 @@ export async function addBulk(_: FormState, fd: FormData): Promise<FormState> {
   const rows: { listingId: string; login: string; previewUrl: string | null; secretEnc: string }[] = [];
   let bad = 0;
   let dupes = 0;
-  for (const rawLine of lines) {
+
+  // The form sends the already-split rows, including any preview typed by hand for each item.
+  let split: { login?: unknown; password?: unknown; notes?: unknown; preview?: unknown }[] | null = null;
+  try {
+    const raw = String(fd.get('rows') ?? '');
+    if (raw) split = JSON.parse(raw);
+  } catch {
+    split = null;
+  }
+  if (Array.isArray(split) && split.length) {
+    if (split.length > 5000) return { error: 'Add at most 5,000 at a time.' };
+    for (const r of split) {
+      const login = String(r.login ?? '').trim();
+      const password = String(r.password ?? '');
+      if (!login || !password) { bad++; continue; }
+      if (existing.has(login)) { dupes++; continue; }
+      existing.add(login);
+      rows.push({
+        listingId,
+        login,
+        previewUrl: cleanPreview(String(r.preview ?? '')),
+        secretEnc: encryptSecret({ password, notes: String(r.notes ?? '').trim().slice(0, 2000) }),
+      });
+    }
+  } else for (const rawLine of lines) {
     // Pull out a preview link first (links contain ":" which would confuse the split)
     const found = rawLine.match(URL_IN_LINE)?.[0] ?? '';
     const previewUrl = found ? cleanUrl(found) : null;

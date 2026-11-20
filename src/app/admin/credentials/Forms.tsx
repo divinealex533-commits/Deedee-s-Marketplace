@@ -136,7 +136,7 @@ function SingleForm({ listings, defaultListing }: { listings: { id: string; labe
 
 /** Splits pasted lines the same way the server does, so the admin sees each credential before uploading. */
 function parseBulk(text: string) {
-  const items: { login: string; password: string; extra: string; preview: string }[] = [];
+  const items: { login: string; password: string; notes: string; extra: string; preview: string }[] = [];
   let bad = 0;
   for (const raw of text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)) {
     const found = raw.match(/https?:\/\/\S+/i)?.[0] ?? '';
@@ -144,7 +144,7 @@ function parseBulk(text: string) {
     const sep = line.includes('|') ? '|' : line.includes('\t') ? '\t' : ':';
     const [login, password, ...rest] = line.split(sep).map((p) => p.trim());
     if (!login || !password) bad++;
-    else items.push({ login, password, extra: rest.join(' · '), preview: found });
+    else items.push({ login, password, notes: rest.join(sep).trim(), extra: rest.join(' · '), preview: found });
   }
   return { items, bad };
 }
@@ -154,9 +154,16 @@ function BulkForm({ listings, defaultListing }: { listings: { id: string; label:
   const [text, setText] = useState('');
   const { items, bad } = parseBulk(text);
   const count = items.length;
+  // Previews typed by hand for each split line (keyed by login, so editing the text keeps them)
+  const [previews, setPreviews] = useState<Record<string, string>>({});
+  const previewOf = (it: { login: string; preview: string }) => previews[it.login] ?? it.preview;
+  const MAX_EDIT = 300;
 
   useEffect(() => {
-    if (state?.ok) setText('');
+    if (state?.ok) {
+      setText('');
+      setPreviews({});
+    }
   }, [state]);
 
   const onFile = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -212,21 +219,40 @@ function BulkForm({ listings, defaultListing }: { listings: { id: string; label:
             <span className="font-semibold text-white">{count} credential{count === 1 ? '' : 's'} ready</span>
             {bad > 0 && <span className="text-warn">{bad} line{bad === 1 ? '' : 's'} not understood (skipped)</span>}
           </div>
-          <ol className="max-h-72 divide-y divide-line overflow-y-auto">
-            {items.slice(0, 200).map((it, i) => (
-              <li key={i} className="flex items-center gap-3 px-4 py-2 text-sm">
-                <span className="w-6 shrink-0 text-right text-muted">{i + 1}</span>
-                <span className="min-w-0 flex-1 truncate font-mono text-white">{it.login}</span>
-                <span className="shrink-0 font-mono text-muted">{'•'.repeat(Math.min(it.password.length, 8))}</span>
-                {it.extra && <span className="hidden max-w-[30%] truncate text-muted sm:block">{it.extra}</span>}
-                {it.preview && <ExternalLink className="h-3.5 w-3.5 shrink-0 text-accent-text" aria-label="Has preview link" />}
+          <p className="border-b border-line px-4 py-2 text-[13px] text-muted">Type a preview (number or link) for any item. Customers only see the preview before buying.</p>
+          <ol className="max-h-[28rem] divide-y divide-line overflow-y-auto">
+            {items.slice(0, MAX_EDIT).map((it, i) => (
+              <li key={`${it.login}-${i}`} className="space-y-2 px-4 py-3 text-sm">
+                <div className="flex items-center gap-3">
+                  <span className="w-6 shrink-0 text-right text-muted">{i + 1}</span>
+                  <span className="min-w-0 flex-1 truncate font-mono text-white">{it.login}</span>
+                  <span className="shrink-0 font-mono text-muted">{'•'.repeat(Math.min(it.password.length, 8))}</span>
+                </div>
+                {it.extra && <div className="truncate pl-9 text-[13px] text-muted">Details: {it.extra}</div>}
+                <div className="flex items-center gap-2 pl-9">
+                  <label htmlFor={`bp-${i}`} className="sr-only">Preview for {it.login}</label>
+                  <input
+                    id={`bp-${i}`}
+                    value={previewOf(it)}
+                    onChange={(e) => setPreviews((p) => ({ ...p, [it.login]: e.target.value }))}
+                    placeholder="Preview: https://… or 17146765378"
+                    autoComplete="off"
+                    className="input h-10 py-2 text-sm"
+                  />
+                  {previewOf(it) && <ExternalLink className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />}
+                </div>
               </li>
             ))}
           </ol>
-          {count > 200 && <p className="border-t border-line px-4 py-2 text-[13px] text-muted">…and {count - 200} more</p>}
+          {count > MAX_EDIT && <p className="border-t border-line px-4 py-2 text-[13px] text-muted">…and {count - MAX_EDIT} more (they upload without a typed preview; you can put a link on the line itself).</p>}
         </div>
       )}
 
+      <input
+        type="hidden"
+        name="rows"
+        value={count ? JSON.stringify(items.map((it) => ({ login: it.login, password: it.password, notes: it.notes, preview: previewOf(it) }))) : ''}
+      />
       <FormMessage state={state} />
       <SubmitButton pending={pending} disabled={!count} pendingText="Encrypting and uploading…">
         <Upload className="h-4 w-4" aria-hidden="true" /> Upload {count || ''} credential{count === 1 ? '' : 's'}
