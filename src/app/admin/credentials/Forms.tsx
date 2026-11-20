@@ -37,10 +37,6 @@ export function CreateListingForm() {
         <label htmlFor="listing-image" className="label">Photo customers see (optional)</label>
         <input id="listing-image" name="image" type="file" accept="image/*" className="input py-2.5 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-line file:px-3 file:py-1.5 file:text-soft" />
       </div>
-      <label className="flex cursor-pointer items-start gap-2.5 text-sm text-soft">
-        <input type="checkbox" name="showLogin" className="mt-0.5 h-[18px] w-[18px] accent-accent" />
-        <span>Show each login in full before purchase (e.g. phone numbers). Leave off to show them partly hidden.</span>
-      </label>
       <FormMessage state={state} />
       <SubmitButton pending={pending} pendingText="Creating…">Create listing</SubmitButton>
     </form>

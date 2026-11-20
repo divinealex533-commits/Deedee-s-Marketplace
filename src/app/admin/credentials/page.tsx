@@ -8,6 +8,7 @@ import SubmitButton from '@/components/SubmitButton';
 import { AddCredentialForms, CreateListingForm, ListingImageForm } from './Forms';
 import ListingImage from '@/components/ListingImage';
 import { PlatformTile } from '@/components/PlatformIcon';
+import EditListing from './EditListing';
 import RevealCell from './RevealCell';
 
 export const metadata = { title: 'Credentials pool' };
@@ -90,7 +91,7 @@ export default async function CredentialsPage({
           <div className="table-wrap">
             <table className="data-table min-w-[1000px]">
               <thead>
-                <tr><th scope="col">Listing</th><th scope="col">Photo</th><th scope="col">Price (₦)</th><th scope="col">In stock</th><th scope="col">Sold</th><th scope="col">Preview</th><th scope="col">Visible</th><th scope="col"><span className="sr-only">Actions</span></th></tr>
+                <tr><th scope="col">Listing</th><th scope="col">Photo</th><th scope="col">Price (₦)</th><th scope="col">In stock</th><th scope="col">Sold</th><th scope="col">Visible</th><th scope="col"><span className="sr-only">Actions</span></th></tr>
               </thead>
               <tbody>
                 {listings.map((l) => (
@@ -98,6 +99,7 @@ export default async function CredentialsPage({
                     <td>
                       <Link href={qs({ listing: l.id, page: undefined })} className="font-medium text-white hover:text-accent-text">{l.title}</Link>
                       <div className="text-[13px] text-muted">{l.platform}</div>
+                      <EditListing listing={{ id: l.id, platform: l.platform, title: l.title, description: l.description, price: l.price / 100, active: l.active, hasImage: Boolean(l.imageAt) }} />
                     </td>
                     <td>
                       <div className="flex items-center gap-2">
@@ -117,15 +119,6 @@ export default async function CredentialsPage({
                     </td>
                     <td className={l._count.credentials ? 'text-success' : 'text-danger'}>{l._count.credentials}</td>
                     <td className="text-soft">{l._count.orders}</td>
-                    <td>
-                      <form action={updateListing}>
-                        <input type="hidden" name="id" value={l.id} />
-                        <input type="hidden" name="showLogin" value={String(!l.showLogin)} />
-                        <SubmitButton className={`badge cursor-pointer whitespace-nowrap ${l.showLogin ? 'bg-accent/20 text-accent-text' : 'bg-line text-soft'}`} pendingText="…">
-                          {l.showLogin ? 'Full login' : 'Partly hidden'}
-                        </SubmitButton>
-                      </form>
-                    </td>
                     <td>
                       <form action={updateListing}>
                         <input type="hidden" name="id" value={l.id} />

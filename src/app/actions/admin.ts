@@ -79,6 +79,61 @@ export async function updateListing(fd: FormData) {
   revalidatePath('/admin/credentials');
 }
 
+/** Full edit from the Edit pop-up: name, platform, price, description, photo and visibility. */
+export async function editListing(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const id = String(fd.get('id') ?? '');
+  const parsed = listingSchema.safeParse(Object.fromEntries(fd));
+  if (!parsed.success) return { error: parsed.error.issues[0]!.message };
+  const { platform, title, description, price } = parsed.data;
+  const img = await readImage(fd.get('image'), 3 * 1024 * 1024);
+  if ('error' in img) return { error: img.error };
+  const removeImage = fd.get('removeImage') === 'on';
+
+  const found = await prisma.listing.findUnique({ where: { id }, select: { id: true } });
+  if (!found) return { error: 'That listing no longer exists.' };
+
+  await prisma.$transaction(async (tx) => {
+    await tx.listing.update({
+      where: { id },
+      data: {
+        platform,
+        title,
+        description,
+        price: kobo(price),
+        active: fd.get('active') === 'on',
+        ...(img.image ? { imageAt: new Date() } : removeImage ? { imageAt: null } : {}),
+      },
+    });
+    if (img.image) {
+      await tx.listingImage.upsert({ where: { listingId: id }, create: { listingId: id, ...img.image }, update: img.image });
+    } else if (removeImage) {
+      await tx.listingImage.deleteMany({ where: { listingId: id } });
+    }
+  });
+  revalidatePath('/', 'layout');
+  return { ok: `Saved “${title}”.` };
+}
+
+/** Deletes a listing that has never been bought; listings with sales are hidden instead so order history stays intact. */
+export async function deleteListing(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const id = String(fd.get('id') ?? '');
+  const l = await prisma.listing.findUnique({ where: { id }, select: { title: true, _count: { select: { orders: true, checkouts: true } } } });
+  if (!l) return { error: 'That listing no longer exists.' };
+  if (l._count.orders || l._count.checkouts) {
+    await prisma.$transaction([
+      prisma.listing.update({ where: { id }, data: { active: false } }),
+      prisma.credential.deleteMany({ where: { listingId: id, status: 'AVAILABLE' } }),
+    ]);
+    revalidatePath('/', 'layout');
+    return { ok: `“${l.title}” has past orders, so it was hidden (not deleted) and its unsold stock removed. Customers’ order history is kept.` };
+  }
+  await prisma.listing.delete({ where: { id } });
+  revalidatePath('/', 'layout');
+  return { ok: `Deleted “${l.title}”.` };
+}
+
 export async function setListingImage(_: FormState, fd: FormData): Promise<FormState> {
   await requireAdmin();
   const listingId = String(fd.get('id') ?? '');
