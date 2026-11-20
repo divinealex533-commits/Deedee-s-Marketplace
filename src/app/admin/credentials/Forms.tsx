@@ -154,9 +154,9 @@ function BulkForm({ listings, defaultListing }: { listings: { id: string; label:
   const [text, setText] = useState('');
   const { items, bad } = parseBulk(text);
   const count = items.length;
-  // Previews typed by hand for each split line (keyed by login, so editing the text keeps them)
-  const [previews, setPreviews] = useState<Record<string, string>>({});
-  const previewOf = (it: { login: string; preview: string }) => previews[it.login] ?? it.preview;
+  // Previews typed by hand for each split line (by position, so repeated logins can each have their own)
+  const [previews, setPreviews] = useState<Record<number, string>>({});
+  const previewOf = (it: { preview: string }, i: number) => previews[i] ?? it.preview;
   const MAX_EDIT = 300;
 
   useEffect(() => {
@@ -209,7 +209,7 @@ function BulkForm({ listings, defaultListing }: { listings: { id: string; label:
           className="input font-mono text-sm"
         />
         <p className="mt-1.5 text-[13px] text-muted">
-          Format: <span className="font-mono">login:password</span>, optionally <span className="font-mono">:extra details</span> (2FA, email…) and a link. You can also use <span className="font-mono">|</span> or paste straight from a spreadsheet. Duplicates are skipped.
+          Format: <span className="font-mono">login:password</span>, optionally <span className="font-mono">:extra details</span> (2FA, email…) and a link. You can also use <span className="font-mono">|</span> or paste straight from a spreadsheet. Repeats are allowed.
         </p>
       </div>
 
@@ -233,13 +233,13 @@ function BulkForm({ listings, defaultListing }: { listings: { id: string; label:
                   <label htmlFor={`bp-${i}`} className="sr-only">Preview for {it.login}</label>
                   <input
                     id={`bp-${i}`}
-                    value={previewOf(it)}
-                    onChange={(e) => setPreviews((p) => ({ ...p, [it.login]: e.target.value }))}
+                    value={previewOf(it, i)}
+                    onChange={(e) => setPreviews((p) => ({ ...p, [i]: e.target.value }))}
                     placeholder="Preview: https://… or 17146765378"
                     autoComplete="off"
                     className="input h-10 py-2 text-sm"
                   />
-                  {previewOf(it) && <ExternalLink className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />}
+                  {previewOf(it, i) && <ExternalLink className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />}
                 </div>
               </li>
             ))}
@@ -251,7 +251,7 @@ function BulkForm({ listings, defaultListing }: { listings: { id: string; label:
       <input
         type="hidden"
         name="rows"
-        value={count ? JSON.stringify(items.map((it) => ({ login: it.login, password: it.password, notes: it.notes, preview: previewOf(it) }))) : ''}
+        value={count ? JSON.stringify(items.map((it, i) => ({ login: it.login, password: it.password, notes: it.notes, preview: previewOf(it, i) }))) : ''}
       />
       <FormMessage state={state} />
       <SubmitButton pending={pending} disabled={!count} pendingText="Encrypting and uploading…">

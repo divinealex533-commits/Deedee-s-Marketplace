@@ -117,13 +117,7 @@ export async function addCredential(_: FormState, fd: FormData): Promise<FormSta
   }
   if (!rows.length) return { error: 'Enter the login and password.' };
 
-  const seen = new Set<string>();
-  for (const r of rows) {
-    if (seen.has(r.login)) return { error: `“${r.login}” is entered twice.` };
-    seen.add(r.login);
-  }
-  const dup = await prisma.credential.findFirst({ where: { listingId, login: { in: [...seen] } }, select: { login: true } });
-  if (dup) return { error: `“${dup.login}” is already in this listing.` };
+  // No duplicate check: the same login can be added as many times as the admin wants.
 
   await prisma.credential.createMany({
     data: rows.map((r) => ({ listingId, login: r.login, previewUrl: r.previewUrl, secretEnc: encryptSecret({ password: r.password, notes: r.notes }) })),
@@ -147,13 +141,8 @@ export async function addBulk(_: FormState, fd: FormData): Promise<FormState> {
   if (!lines.length) return { error: 'Paste at least one line.' };
   if (lines.length > 5000) return { error: 'Add at most 5,000 lines at a time.' };
 
-  const existing = new Set(
-    (await prisma.credential.findMany({ where: { listingId }, select: { login: true } })).map((c) => c.login),
-  );
-
   const rows: { listingId: string; login: string; previewUrl: string | null; secretEnc: string }[] = [];
   let bad = 0;
-  let dupes = 0;
 
   // The form sends the already-split rows, including any preview typed by hand for each item.
   let split: { login?: unknown; password?: unknown; notes?: unknown; preview?: unknown }[] | null = null;
@@ -169,8 +158,6 @@ export async function addBulk(_: FormState, fd: FormData): Promise<FormState> {
       const login = String(r.login ?? '').trim();
       const password = String(r.password ?? '');
       if (!login || !password) { bad++; continue; }
-      if (existing.has(login)) { dupes++; continue; }
-      existing.add(login);
       rows.push({
         listingId,
         login,
@@ -189,11 +176,6 @@ export async function addBulk(_: FormState, fd: FormData): Promise<FormState> {
       bad++;
       continue;
     }
-    if (existing.has(login)) {
-      dupes++;
-      continue;
-    }
-    existing.add(login);
     rows.push({ listingId, login, previewUrl, secretEnc: encryptSecret({ password, notes: rest.join(sep).trim() }) });
   }
 
@@ -201,7 +183,6 @@ export async function addBulk(_: FormState, fd: FormData): Promise<FormState> {
   revalidatePath('/admin', 'layout');
 
   const parts = [`Added ${rows.length} credential${rows.length === 1 ? '' : 's'}.`];
-  if (dupes) parts.push(`${dupes} already in the pool (skipped).`);
   if (bad) parts.push(`${bad} line${bad === 1 ? '' : 's'} not in login:password format (skipped).`);
   return rows.length ? { ok: parts.join(' ') } : { error: parts.slice(1).join(' ') || 'Nothing was added.' };
 }
