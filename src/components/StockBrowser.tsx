@@ -55,7 +55,7 @@ export default function StockBrowser({
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search accounts, e.g. Facebook USA, Textplus, aged…"
+          placeholder="Search accounts…"
           autoComplete="off"
           className="input h-14 rounded-2xl pl-12 pr-12 text-[16px]"
         />
