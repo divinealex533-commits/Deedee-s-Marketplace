@@ -121,7 +121,7 @@ export async function login(_: FormState, fd: FormData): Promise<FormState> {
 
   await createSession(user, remember);
 
-  if (user.role === 'ADMIN') redirect(next.startsWith('/admin') ? next : '/admin');
+  if (user.role === 'ADMIN') redirect(next.startsWith('/admin') && next !== '/admin' ? next : '/admin?welcome=back');
   redirect(next.startsWith('/dashboard') && next !== '/dashboard' ? next : '/dashboard?welcome=back');
 }
 

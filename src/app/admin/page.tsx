@@ -6,6 +6,7 @@ import StatCard from '@/components/StatCard';
 import { requireAdmin } from '@/lib/auth';
 import { autoCompleteOrders } from '@/lib/orders';
 import { displayBalance } from '@/lib/displayBalance';
+import WelcomeToast from '@/components/WelcomeToast';
 import OrderStatus from '@/components/OrderStatus';
 
 export const metadata = { title: 'Overview' };
@@ -13,7 +14,8 @@ export const dynamic = 'force-dynamic';
 
 const DAY = 24 * 60 * 60 * 1000;
 
-export default async function AdminOverview() {
+export default async function AdminOverview({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
+  const sp = await searchParams;
   const admin = await requireAdmin();
   await autoCompleteOrders().catch(() => 0);
   const firstName = admin.name.split(' ')[0];
@@ -65,6 +67,7 @@ export default async function AdminOverview() {
 
   return (
     <>
+      {sp.welcome === 'back' && <WelcomeToast kind="back" name={firstName} admin />}
       {/* Welcome banner */}
       <section className="relative overflow-hidden rounded-3xl border border-line2 bg-gradient-to-br from-[#2A1F6B] via-panel to-panel2 p-6 sm:p-8">
         <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-accent/40 blur-3xl" />
