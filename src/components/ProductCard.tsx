@@ -28,14 +28,14 @@ export default function ProductCard({ p, href }: { p: ProductCardData; href: str
   const brand = platformStyle(p.platform);
 
   return (
-    <div className={`card-shine group relative block rounded-[26px] p-px transition duration-300 hover:-translate-y-1.5 ${soldOut ? 'opacity-60' : ''}`}>
+    <div className={`card-shine group relative block min-w-0 rounded-[26px] p-px transition duration-300 hover:-translate-y-1.5 ${soldOut ? 'opacity-60' : ''}`}>
       {/* Border that lights up in the platform's colour on hover */}
       <span aria-hidden="true" className="absolute inset-0 rounded-[26px] bg-gradient-to-b from-white/15 via-line to-line transition duration-300 group-hover:opacity-0" />
       <span aria-hidden="true" className="absolute inset-0 rounded-[26px] opacity-0 transition duration-300 group-hover:opacity-100" style={{ background: `linear-gradient(160deg, ${brand.glow}, #6246EA 60%, transparent)` }} />
       {/* Brand glow under the card */}
       <span aria-hidden="true" className="absolute inset-x-6 -bottom-2 h-10 rounded-full opacity-0 blur-2xl transition duration-300 group-hover:opacity-60" style={{ background: brand.glow }} />
 
-      <div className="relative flex h-full flex-col overflow-hidden rounded-[25px] bg-gradient-to-b from-[#151B3A] to-panel2">
+      <div className="relative flex h-full min-w-0 flex-col overflow-hidden rounded-[25px] bg-gradient-to-b from-[#151B3A] to-panel2">
         {/* Image */}
         <div className="relative overflow-hidden">
           <ListingImage id={p.id} imageAt={p.imageAt} platform={p.platform} title={p.title} className="aspect-[16/10] transition duration-700 group-hover:scale-[1.06]" />
