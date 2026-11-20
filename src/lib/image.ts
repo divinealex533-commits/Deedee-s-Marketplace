@@ -17,6 +17,17 @@ export async function readImage(file: FormDataEntryValue | null, maxBytes: numbe
 }
 
 /** Customer-facing preview of a login: full, or partly hidden. */
+/**
+ * What customers see for one item before buying: ONLY the preview the admin typed
+ * (a number/ID, or a link). The login and password are never shown or sent to the browser.
+ */
+export function itemPreview(previewUrl: string | null, n: number): { preview: string; url: string | null; copy: boolean } {
+  const v = previewUrl?.trim();
+  if (!v) return { preview: `Item ${n}`, url: null, copy: false };
+  if (/^https?:\/\//i.test(v)) return { preview: v.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, ''), url: v, copy: false };
+  return { preview: v, url: null, copy: true };
+}
+
 export function previewLogin(login: string, show: boolean) {
   if (show) return login;
   if (login.includes('@')) {

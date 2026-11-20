@@ -23,7 +23,7 @@ export default function BuyPanel({
   balance: number;
   stock: number;
   showLogin: boolean;
-  items: { id: string; preview: string; url: string | null }[];
+  items: { id: string; preview: string; url: string | null; copy: boolean }[];
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [qty, setQty] = useState(1);
@@ -91,7 +91,7 @@ export default function BuyPanel({
                       <Eye className="h-3.5 w-3.5" aria-hidden="true" /> Preview
                     </a>
                   )}
-                  {showLogin && (
+                  {item.copy && (
                     <span onClick={(e) => e.preventDefault()}>
                       <CopyButton value={item.preview} label="Preview" />
                     </span>

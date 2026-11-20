@@ -13,7 +13,7 @@ import { PLATFORMS, site, whatsappLink } from '@/lib/site';
 import ListingImage from '@/components/ListingImage';
 import ProductCard from '@/components/ProductCard';
 import { PlatformTile } from '@/components/PlatformIcon';
-import { previewLogin } from '@/lib/image';
+import { itemPreview } from '@/lib/image';
 import HeroSlider from '@/components/HeroSlider';
 
 // Numbers and stock refresh every 60 seconds: fast pages, quiet database.
@@ -28,7 +28,7 @@ const getHomeData = unstable_cache(
           where: { active: true, credentials: { some: { status: 'AVAILABLE' } } },
           include: {
             _count: { select: { credentials: { where: { status: 'AVAILABLE' } } } },
-            credentials: { where: { status: 'AVAILABLE' }, orderBy: { createdAt: 'asc' }, take: 3, select: { id: true, login: true, previewUrl: true } },
+            credentials: { where: { status: 'AVAILABLE' }, orderBy: { createdAt: 'asc' }, take: 3, select: { id: true, previewUrl: true } },
           },
           orderBy: { createdAt: 'desc' },
           take: 6,
@@ -61,7 +61,7 @@ const getHomeData = unstable_cache(
           imageAt: l.imageAt ? l.imageAt.getTime() : null,
           rating: ratings[l.id],
           showLogin: l.showLogin,
-          items: l.credentials.map((c) => ({ id: c.id, preview: previewLogin(c.login, l.showLogin), url: c.previewUrl })),
+          items: l.credentials.map((c, i) => ({ id: c.id, ...itemPreview(c.previewUrl, i + 1) })),
         })),
       };
     } catch {

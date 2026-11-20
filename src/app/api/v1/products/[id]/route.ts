@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { authenticate, fail, ok, toNaira } from '@/lib/api';
-import { previewLogin } from '@/lib/image';
+import { itemPreview } from '@/lib/image';
 import { SITE_URL } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
@@ -29,9 +29,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
           where: { listingId: id, status: 'AVAILABLE' },
           orderBy: { createdAt: 'asc' },
           take: 200,
-          select: { id: true, login: true, previewUrl: true },
+          select: { id: true, previewUrl: true },
         })
-      ).map((c) => ({ id: c.id, preview: previewLogin(c.login, l.showLogin), preview_url: c.previewUrl }))
+      ).map((c, i) => ({ id: c.id, preview: itemPreview(c.previewUrl, i + 1).preview, preview_url: c.previewUrl }))
     : undefined;
 
   return ok({

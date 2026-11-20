@@ -5,7 +5,7 @@ import { naira } from '@/lib/format';
 import ProductCard from '@/components/ProductCard';
 import { PlatformTile } from '@/components/PlatformIcon';
 import { displayBalance } from '@/lib/displayBalance';
-import { previewLogin } from '@/lib/image';
+import { itemPreview } from '@/lib/image';
 import { ratingsByListing } from '@/lib/reviews';
 
 export const metadata = { title: 'Marketplace' };
@@ -27,7 +27,7 @@ export default async function MarketplacePage({
       },
       include: {
             _count: { select: { credentials: { where: { status: 'AVAILABLE' } } } },
-            credentials: { where: { status: 'AVAILABLE' }, orderBy: { createdAt: 'asc' }, take: 3, select: { id: true, login: true, previewUrl: true } },
+            credentials: { where: { status: 'AVAILABLE' }, orderBy: { createdAt: 'asc' }, take: 3, select: { id: true, previewUrl: true } },
           },
       orderBy: { createdAt: 'desc' },
     }),
@@ -76,7 +76,7 @@ export default async function MarketplacePage({
             <ProductCard
               key={l.id}
               href={`/dashboard/marketplace/${l.id}`}
-              p={{ id: l.id, title: l.title, platform: l.platform, description: l.description, price: l.price, stock: l._count.credentials, imageAt: l.imageAt, rating: ratings[l.id], showLogin: l.showLogin, items: l.credentials.map((c) => ({ id: c.id, preview: previewLogin(c.login, l.showLogin), url: c.previewUrl })) }}
+              p={{ id: l.id, title: l.title, platform: l.platform, description: l.description, price: l.price, stock: l._count.credentials, imageAt: l.imageAt, rating: ratings[l.id], showLogin: l.showLogin, items: l.credentials.map((c, i) => ({ id: c.id, ...itemPreview(c.previewUrl, i + 1) })) }}
             />
           ))}
         </div>

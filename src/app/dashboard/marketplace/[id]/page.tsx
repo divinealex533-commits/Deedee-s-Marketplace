@@ -4,7 +4,7 @@ import { ArrowLeft, BadgeCheck, ShieldCheck, Zap } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
 import { naira } from '@/lib/format';
-import { previewLogin } from '@/lib/image';
+import { itemPreview } from '@/lib/image';
 import ListingImage from '@/components/ListingImage';
 import { PlatformBadge } from '@/components/PlatformIcon';
 import BuyPanel from './BuyPanel';
@@ -46,7 +46,7 @@ export default async function ListingPage({
     where: { listingId: id, status: 'AVAILABLE' },
     orderBy: { createdAt: 'asc' },
     take: SHOW,
-    select: { id: true, login: true, previewUrl: true },
+    select: { id: true, previewUrl: true },
   });
   const stock = listing._count.credentials;
   const [reviews, summary] = await Promise.all([
@@ -118,7 +118,7 @@ export default async function ListingPage({
             balance={user.balance}
             stock={stock}
             showLogin={listing.showLogin}
-            items={items.map((c) => ({ id: c.id, preview: previewLogin(c.login, listing.showLogin), url: c.previewUrl }))}
+            items={items.map((c, i) => ({ id: c.id, ...itemPreview(c.previewUrl, i + 1) }))}
           />
           )}
         </section>

@@ -79,7 +79,7 @@ export default function ProductCard({ p, href }: { p: ProductCardData; href: str
               </span>
             </div>
           ) : (
-            <CardBuy id={p.id} title={p.title} platform={p.platform} price={p.price} stock={p.stock} items={p.items ?? []} copyable={!!p.showLogin} />
+            <CardBuy id={p.id} title={p.title} platform={p.platform} price={p.price} stock={p.stock} items={p.items ?? []} />
           )}
         </div>
       </div>
