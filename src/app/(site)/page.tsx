@@ -11,9 +11,9 @@ import Stars from '@/components/Stars';
 import { naira } from '@/lib/format';
 import { PLATFORMS, site, whatsappLink } from '@/lib/site';
 import ListingImage from '@/components/ListingImage';
-import ProductCard from '@/components/ProductCard';
 import { PlatformTile } from '@/components/PlatformIcon';
 import { itemPreview } from '@/lib/image';
+import StockBrowser from '@/components/StockBrowser';
 import HeroSlider from '@/components/HeroSlider';
 
 // Numbers and stock refresh every 60 seconds: fast pages, quiet database.
@@ -31,7 +31,7 @@ const getHomeData = unstable_cache(
             credentials: { where: { status: 'AVAILABLE' }, orderBy: { createdAt: 'asc' }, take: 3, select: { id: true, previewUrl: true } },
           },
           orderBy: { createdAt: 'desc' },
-          take: 6,
+          take: 30,
         }),
       ]);
       const [ratings, latest, overall] = await Promise.all([
@@ -206,8 +206,8 @@ export default async function HomePage() {
           <Link href="/signup" className="btn btn-ghost">See everything <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
         </div>
         {cards.length ? (
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {cards.map((p) => <ProductCard key={p.id} p={p} href={`/dashboard/marketplace/${p.id}`} />)}
+          <div className="mt-10">
+            <StockBrowser cards={cards} hrefBase="/dashboard/marketplace" />
           </div>
         ) : (
           <div className="card mt-10 p-10 text-center">
