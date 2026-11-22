@@ -72,8 +72,8 @@ export async function botReply(text: string, firstName: string): Promise<{ html:
   const cmd = text.trim().split(/[\s@]/)[0]!.toLowerCase();
   const shop: Button = { text: '🛒 Open the marketplace', url: `${SITE_URL}/dashboard/marketplace` };
   const signup: Button = { text: '✨ Create free account', url: `${SITE_URL}/signup` };
-  const wa: Button = { text: '💬 WhatsApp support', url: whatsappLink('Hello, I need help with DeeDee’s Marketplace') };
-  const tgSupport: Button = { text: '✈️ Telegram support', url: tgLink(site.telegram) };
+  const wa: Button = { text: '💬 WhatsApp', url: whatsappLink('Hello, I need help with DeeDee’s Marketplace') };
+  const tgSupport: Button = { text: '✈️ Telegram', url: tgLink(site.telegram) };
   const joinChannel: Button[] = channel ? [{ text: '📣 Join our channel', url: tgLink(channel) }] : [];
   const menu: Button[][] = [[shop], [signup], [wa, tgSupport], ...(joinChannel.length ? [joinChannel] : [])];
 
