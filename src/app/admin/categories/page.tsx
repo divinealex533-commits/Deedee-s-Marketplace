@@ -2,7 +2,7 @@ import { prisma } from '@/lib/db';
 import ActionForm from '@/components/ActionForm';
 import CategoryTile from '@/components/CategoryTile';
 import { PlatformTile } from '@/components/PlatformIcon';
-import { createCategory, deleteCategory, setCategoryPlatforms, updateCategory } from '@/app/actions/categories';
+import { createCategory, deleteCategory, setCategoryListings, updateCategory } from '@/app/actions/categories';
 
 export const metadata = { title: 'Categories' };
 export const dynamic = 'force-dynamic';
@@ -10,22 +10,16 @@ export const dynamic = 'force-dynamic';
 const EMOJIS = ['💬', '📱', '📧', '🎬', '🎵', '🎮', '📸', '👥', '🌍', '🛍️'];
 
 export default async function CategoriesPage() {
-  const [categories, platformRows] = await Promise.all([
+  const [categories, listings] = await Promise.all([
     prisma.category.findMany({ orderBy: [{ order: 'asc' }, { name: 'asc' }], include: { _count: { select: { listings: true } } } }),
-    prisma.listing.groupBy({ by: ['platform', 'categoryId'], _count: { _all: true } }),
+    prisma.listing.findMany({ orderBy: [{ platform: 'asc' }, { title: 'asc' }], select: { id: true, title: true, platform: true, active: true, categoryId: true } }),
   ]);
-
-  // Every platform used by a listing, how many listings it has, and which category those listings are in
-  const platforms = new Map<string, { count: number; categoryIds: Set<string | null> }>();
-  for (const r of platformRows) {
-    const p = platforms.get(r.platform) ?? { count: 0, categoryIds: new Set() };
-    p.count += r._count._all;
-    p.categoryIds.add(r.categoryId);
-    platforms.set(r.platform, p);
-  }
-  const platformList = [...platforms].sort((a, b) => a[0].localeCompare(b[0]));
   const nameOf = new Map(categories.map((c) => [c.id, c.name]));
-  const uncategorised = platformList.filter(([, p]) => p.categoryIds.has(null)).map(([name]) => name);
+  const uncategorised = listings.filter((l) => !l.categoryId).length;
+
+  // Listings grouped by platform, so the checklist reads Facebook…, Google Voice…, TextPlus…
+  const byPlatform = new Map<string, typeof listings>();
+  for (const l of listings) byPlatform.set(l.platform, [...(byPlatform.get(l.platform) ?? []), l]);
 
   return (
     <>
@@ -53,9 +47,9 @@ export default async function CategoriesPage() {
         </ActionForm>
       </section>
 
-      {uncategorised.length > 0 && categories.length > 0 && (
+      {uncategorised > 0 && categories.length > 0 && (
         <p className="alert-error">
-          Not in any category yet: {uncategorised.join(', ')}. Customers see these under their own platform name. Tick them in a category below.
+          {uncategorised} listing{uncategorised === 1 ? ' is' : 's are'} not in any category yet. Customers see {uncategorised === 1 ? 'it' : 'them'} under the platform name. Tick them in a category below.
         </p>
       )}
 
@@ -71,28 +65,35 @@ export default async function CategoriesPage() {
                 </div>
               </div>
 
-              <ActionForm action={setCategoryPlatforms} submit="Save what’s in this category" buttonClass="btn btn-primary w-full">
+              <ActionForm action={setCategoryListings} submit="Save what’s in this category" buttonClass="btn btn-primary w-full">
                 <input type="hidden" name="id" value={c.id} />
                 <fieldset>
-                  <legend className="label">Platforms in this category</legend>
-                  {platformList.length ? (
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {platformList.map(([name, p]) => {
-                        const here = p.categoryIds.has(c.id);
-                        const elsewhere = [...p.categoryIds].filter((id) => id && id !== c.id).map((id) => nameOf.get(id!)).filter(Boolean);
-                        return (
-                          <label key={name} className="flex items-center gap-3 rounded-xl border border-line px-3 py-2.5 text-soft has-[:checked]:border-accent has-[:checked]:bg-accent/10">
-                            <input type="checkbox" name="platform" value={name} defaultChecked={here} className="h-4 w-4" />
-                            <PlatformTile platform={name} size={28} />
-                            <span className="min-w-0">
-                              <span className="block truncate text-white">{name}</span>
-                              <span className="block text-[12px] text-muted">
-                                {p.count} listing{p.count === 1 ? '' : 's'}{elsewhere.length ? ` · now in ${elsewhere.join(', ')}` : ''}
-                              </span>
-                            </span>
-                          </label>
-                        );
-                      })}
+                  <legend className="label">Tick the listings that go in this category</legend>
+                  {listings.length ? (
+                    <div className="max-h-[420px] space-y-4 overflow-y-auto pr-1">
+                      {[...byPlatform].map(([platform, items]) => (
+                        <div key={platform}>
+                          <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-soft">
+                            <PlatformTile platform={platform} size={22} /> {platform}
+                          </div>
+                          <div className="space-y-2">
+                            {items.map((l) => {
+                              const other = l.categoryId && l.categoryId !== c.id ? nameOf.get(l.categoryId) : null;
+                              return (
+                                <label key={l.id} className="flex items-center gap-3 rounded-xl border border-line px-3 py-2.5 text-soft has-[:checked]:border-accent has-[:checked]:bg-accent/10">
+                                  <input type="checkbox" name="listing" value={l.id} defaultChecked={l.categoryId === c.id} className="h-4 w-4 shrink-0" />
+                                  <span className="min-w-0">
+                                    <span className="block truncate text-white">{l.title}</span>
+                                    <span className="block text-[12px] text-muted">
+                                      {other ? `Now in ${other}` : 'No category'}{l.active ? '' : ' · hidden'}
+                                    </span>
+                                  </span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ) : (
                     <p className="text-sm text-muted">No listings yet.</p>

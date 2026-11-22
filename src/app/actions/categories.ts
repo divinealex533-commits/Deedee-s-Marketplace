@@ -78,3 +78,18 @@ export async function setCategoryPlatforms(_: FormState, fd: FormData): Promise<
   refresh();
   return { ok: platforms.length ? `${added.count} listing${added.count === 1 ? '' : 's'} now in “${cat.name}”.` : `“${cat.name}” is now empty.` };
 }
+
+/** Puts exactly the ticked listings in this category; listings unticked here are taken out of it. */
+export async function setCategoryListings(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const id = String(fd.get('id') ?? '');
+  const ids = fd.getAll('listing').map((v) => String(v)).filter(Boolean);
+  const cat = await prisma.category.findUnique({ where: { id }, select: { name: true } });
+  if (!cat) return { error: 'That category no longer exists.' };
+  await prisma.$transaction([
+    prisma.listing.updateMany({ where: { id: { in: ids } }, data: { categoryId: id } }),
+    prisma.listing.updateMany({ where: { categoryId: id, id: { notIn: ids } }, data: { categoryId: null } }),
+  ]);
+  refresh();
+  return { ok: ids.length ? `${ids.length} listing${ids.length === 1 ? '' : 's'} now in “${cat.name}”.` : `“${cat.name}” is now empty.` };
+}

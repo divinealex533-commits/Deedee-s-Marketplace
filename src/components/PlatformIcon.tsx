@@ -3,7 +3,7 @@ import {
   SiDiscord, SiFacebook, SiGmail, SiGoogle, SiInstagram, SiNetflix, SiPinterest, SiReddit, SiSnapchat,
   SiSpotify, SiTelegram, SiThreads, SiTiktok, SiTwitch, SiWhatsapp, SiX, SiYoutube,
 } from 'react-icons/si';
-import { BadgeCheck } from 'lucide-react';
+import { BadgeCheck, MessageSquareText } from 'lucide-react';
 
 /** Brand look for each platform: icon, icon colour, and a background gradient. */
 export type PlatformStyle = { Icon: IconType | typeof BadgeCheck; color: string; bg: string; glow: string };
@@ -25,6 +25,8 @@ const STYLES: [RegExp, PlatformStyle][] = [
   [/netflix/i, { Icon: SiNetflix, color: '#E50914', bg: 'linear-gradient(135deg,#141414 0%,#000 100%)', glow: '#E50914' }],
   [/spotify/i, { Icon: SiSpotify, color: '#fff', bg: 'linear-gradient(135deg,#1DB954 0%,#168D40 100%)', glow: '#1DB954' }],
   [/gmail|e-?mail/i, { Icon: SiGmail, color: '#fff', bg: 'linear-gradient(135deg,#EA4335 0%,#C5221F 100%)', glow: '#EA4335' }],
+  [/text ?now/i, { Icon: MessageSquareText, color: '#fff', bg: 'linear-gradient(135deg,#7B3FE4 0%,#5A23C8 100%)', glow: '#7B3FE4' }],
+  [/text ?plus|text ?free|talkatone|textme/i, { Icon: MessageSquareText, color: '#fff', bg: 'linear-gradient(135deg,#19B36B 0%,#0E8A52 100%)', glow: '#19B36B' }],
   [/google/i, { Icon: SiGoogle, color: '#fff', bg: 'linear-gradient(135deg,#4285F4 0%,#3367D6 100%)', glow: '#4285F4' }],
 ];
 
