@@ -9,6 +9,7 @@ import { naira } from '@/lib/format';
 import { imageType, readImage } from '@/lib/image';
 import { rateLimit } from '@/lib/ratelimit';
 import { getSellerConfig, sellerActive } from '@/lib/seller';
+import { announceStock } from '@/lib/telegram';
 import type { FormState } from './types';
 
 const kobo = (n: number) => Math.round(n * 100);
@@ -137,6 +138,7 @@ export async function addSellerStock(_: FormState, fd: FormData): Promise<FormSt
   }
   if (rows.length) await prisma.credential.createMany({ data: rows });
   revalidatePath('/dashboard', 'layout');
+  await announceStock(listingId, rows.length);
   const msg = `Added ${rows.length} to “${own.title}”.` + (bad ? ` ${bad} line${bad === 1 ? '' : 's'} skipped (not login:password).` : '');
   return rows.length ? { ok: msg } : { error: 'Nothing was added. Use one login:password per line.' };
 }

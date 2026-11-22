@@ -4,7 +4,8 @@ import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
 import { getAnnouncement, getReferralConfig, getTelegramConfig } from '@/lib/settings';
 import ActionForm from '@/components/ActionForm';
-import { saveTelegramConfig } from '@/app/actions/admin';
+import { connectBot, postChannelMessage, saveTelegramConfig, setAutoPost } from '@/app/actions/admin';
+import { getBotConfig } from '@/lib/telegram';
 import { AnnouncementForm, NameForm, ReferralForm } from './Forms';
 
 export const metadata = { title: 'Settings' };
@@ -12,7 +13,8 @@ export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
   const admin = await requireAdmin();
-  const [telegram, announcement, referral, banks, inStock, withImage] = await Promise.all([
+  const [bot, telegram, announcement, referral, banks, inStock, withImage] = await Promise.all([
+    getBotConfig(),
     getTelegramConfig(),
     getAnnouncement(),
     getReferralConfig(),
@@ -57,6 +59,43 @@ export default async function SettingsPage() {
           </div>
           </div>
         </ActionForm>
+      </section>
+
+      <section aria-labelledby="bot" className="card p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 id="bot" className="text-lg font-semibold text-white">Telegram bot</h2>
+          {bot.token && bot.username
+            ? <span className="badge bg-[#0F3B2C] text-success">Connected: @{bot.username}</span>
+            : <span className="badge bg-line text-soft">Not connected</span>}
+        </div>
+        <p className="mb-5 mt-1 text-sm text-muted">
+          Paste the token BotFather gave you. The bot then answers /start, /shop, /wallet, /howtobuy, /sell, /support and /channel. Keep the token secret: anyone with it controls your bot.
+        </p>
+        <div className="grid gap-6 lg:grid-cols-3">
+          <ActionForm action={connectBot} submit={bot.token ? 'Reconnect bot' : 'Connect bot'} pendingText="Connecting…" buttonClass="btn btn-primary w-full">
+            <div>
+              <label htmlFor="bot-token" className="label">Bot token</label>
+              <input id="bot-token" name="token" type="password" autoComplete="off" placeholder={bot.token ? 'Saved. Paste a new one to replace it' : '123456789:AA…'} className="input font-mono" />
+            </div>
+          </ActionForm>
+          <ActionForm action={setAutoPost} submit="Save" buttonClass="btn btn-ghost w-full">
+            <span className="label">New stock posts</span>
+            <label className="flex items-start gap-3 text-[15px] text-soft">
+              <input type="checkbox" name="autoPost" defaultChecked={bot.autoPost} className="mt-1 h-4 w-4" />
+              Post in the channel automatically whenever stock is added (by you or a seller)
+            </label>
+          </ActionForm>
+          <ActionForm action={postChannelMessage} resetOnOk submit="Post to channel" pendingText="Posting…" buttonClass="btn btn-primary w-full">
+            <div>
+              <label htmlFor="post-text" className="label">Post a message in your channel</label>
+              <textarea id="post-text" name="text" rows={4} maxLength={3500} placeholder="e.g. Weekend deal: 10% off all Instagram pages till Sunday!" className="input" />
+            </div>
+            <label className="flex items-center gap-2 text-sm text-soft">
+              <input type="checkbox" name="button" defaultChecked className="h-4 w-4" /> Add a “Shop now” button
+            </label>
+          </ActionForm>
+        </div>
+        <p className="mt-4 text-[13px] text-muted">For channel posts, make the bot an admin of your channel with “Post messages” turned on.</p>
       </section>
 
       <div className="flex flex-wrap gap-5">

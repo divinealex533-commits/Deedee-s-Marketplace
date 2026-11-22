@@ -11,6 +11,8 @@ import { naira } from '@/lib/format';
 import { readImage } from '@/lib/image';
 import { getReferralConfig } from '@/lib/settings';
 import { reverseSellerEarning } from '@/lib/seller';
+import { SITE_URL } from '@/lib/site';
+import { announceStock, BOT_COMMANDS, esc, getBotConfig, postToChannel, saveBotConfig, tg } from '@/lib/telegram';
 import type { FormState } from './types';
 
 const kobo = (nairaValue: number) => Math.round(nairaValue * 100);
@@ -179,6 +181,7 @@ export async function addCredential(_: FormState, fd: FormData): Promise<FormSta
     data: rows.map((r) => ({ listingId, login: r.login, previewUrl: r.previewUrl, secretEnc: encryptSecret({ password: r.password, notes: r.notes }) })),
   });
   revalidatePath('/admin', 'layout');
+  await announceStock(listingId, rows.length);
   return { ok: rows.length === 1 ? `Added “${rows[0]!.login}” to the pool.` : `Added ${rows.length} credentials to the pool.` };
 }
 
@@ -237,6 +240,7 @@ export async function addBulk(_: FormState, fd: FormData): Promise<FormState> {
 
   if (rows.length) await prisma.credential.createMany({ data: rows });
   revalidatePath('/admin', 'layout');
+  await announceStock(listingId, rows.length);
 
   const parts = [`Added ${rows.length} credential${rows.length === 1 ? '' : 's'}.`];
   if (bad) parts.push(`${bad} line${bad === 1 ? '' : 's'} not in login:password format (skipped).`);
@@ -422,6 +426,47 @@ export async function saveTelegramConfig(_: FormState, fd: FormData): Promise<Fo
   revalidateTag('settings');
   revalidatePath('/', 'layout');
   return { ok: 'Telegram links saved. They now show in the Help button and on the login, sign-up and log-out screens.' };
+}
+
+/** Saves the bot token, checks it with Telegram, connects the webhook and sets the command menu. */
+export async function connectBot(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const current = await getBotConfig();
+  const token = String(fd.get('token') ?? '').trim() || current.token;
+  if (!/^\d+:[\w-]{30,}$/.test(token)) return { error: 'That doesn’t look like a bot token. Copy the whole token BotFather sent you (numbers:letters).' };
+  try {
+    const me = await tg(token, 'getMe', {});
+    if (!me.ok) return { error: 'Telegram didn’t accept that token. Check you copied all of it, or send /token to BotFather for a new one.' };
+    const username = String((me.result as { username?: string })?.username ?? '');
+    const secret = current.secret && current.token === token ? current.secret : crypto.randomBytes(24).toString('hex');
+    const hook = await tg(token, 'setWebhook', { url: `${SITE_URL}/api/telegram/webhook`, secret_token: secret, allowed_updates: ['message'], drop_pending_updates: true });
+    if (!hook.ok) return { error: `Couldn’t connect the bot: ${hook.description ?? 'unknown error'}` };
+    await tg(token, 'setMyCommands', { commands: BOT_COMMANDS });
+    await saveBotConfig({ token, secret, autoPost: current.autoPost, username });
+    revalidatePath('/admin/settings');
+    return { ok: `@${username} is connected. Open it in Telegram and send /start to try it.` };
+  } catch {
+    return { error: 'Couldn’t reach Telegram. Try again in a minute.' };
+  }
+}
+
+export async function setAutoPost(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const current = await getBotConfig();
+  const autoPost = fd.get('autoPost') === 'on';
+  await saveBotConfig({ ...current, autoPost });
+  revalidatePath('/admin/settings');
+  return { ok: autoPost ? 'The bot will post in your channel whenever stock is added.' : 'Automatic stock posts are off.' };
+}
+
+/** Posts your own message in the channel through the bot. */
+export async function postChannelMessage(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const text = String(fd.get('text') ?? '').trim().slice(0, 3500);
+  if (!text) return { error: 'Write the message first.' };
+  const withButton = fd.get('button') === 'on';
+  const err = await postToChannel(esc(text), withButton ? [[{ text: '🛒 Shop now', url: SITE_URL }]] : []);
+  return err ? { error: err } : { ok: 'Posted in your channel.' };
 }
 
 export async function saveReferralConfig(_: FormState, fd: FormData): Promise<FormState> {
