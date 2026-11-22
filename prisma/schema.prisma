@@ -59,6 +59,20 @@ enum DepositStatus {
   REJECTED
 }
 
+/// Money a seller earns from one sale; the admin approves it before the seller can withdraw.
+enum EarningStatus {
+  PENDING
+  APPROVED
+  /// The order was refunded or the admin rejected it
+  REVERSED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  PAID
+  REJECTED
+}
+
 enum TxStatus {
   PENDING
   SUCCESS
@@ -94,6 +108,18 @@ model User {
   deposits      Deposit[]
   apiKeys       ApiKey[]
   checkouts     Checkout[]
+  /// Sellers: their shop is open (listings visible) until this date. Paid monthly.
+  sellerUntil   DateTime?
+  /// Sellers: approved earnings available to withdraw (kobo)
+  sellerBalance Int           @default(0)
+  /// Sellers: bank account their withdrawals are paid into
+  payoutBank        String?
+  payoutAccountName String?
+  payoutAccountNumber String?
+  sellerListings     Listing[]            @relation("SellerListings")
+  sellerSubscriptions SellerSubscription[]
+  sellerEarnings     SellerEarning[]
+  withdrawals        Withdrawal[]
   createdAt     DateTime      @default(now())
 
   @@index([createdAt])
@@ -129,7 +155,15 @@ model Listing {
   checkouts   Checkout[]
   credentials Credential[]
   orders      Order[]
+  /// Set for listings created by a seller (empty = the shop's own listing)
+  sellerId    String?
+  seller      User?        @relation("SellerListings", fields: [sellerId], references: [id])
+  /// true when hidden automatically because the seller's monthly plan ran out
+  pausedExpired Boolean    @default(false)
+  earnings    SellerEarning[]
   createdAt   DateTime     @default(now())
+
+  @@index([sellerId])
 }
 
 /// Kept in its own table so listing queries don't load image bytes.
@@ -170,6 +204,7 @@ model Order {
   checkoutId   String?
   checkout     Checkout?   @relation(fields: [checkoutId], references: [id], onDelete: SetNull)
   status       OrderStatus @default(ESCROW)
+  earning      SellerEarning?
   confirmedAt  DateTime?
   createdAt    DateTime    @default(now())
 
@@ -217,6 +252,7 @@ model BankAccount {
   active        Boolean   @default(true)
   deposits      Deposit[]
   checkouts     Checkout[]
+  sellerSubscriptions SellerSubscription[]
   createdAt     DateTime  @default(now())
 }
 
@@ -319,4 +355,63 @@ model Checkout {
 
   @@index([userId, createdAt])
   @@index([status, createdAt])
+}
+
+/// A seller's monthly plan payment (bank transfer + receipt). Approving it opens their shop for 30 days.
+model SellerSubscription {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  bankAccountId String?
+  bankAccount   BankAccount?  @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
+  amount        Int
+  senderName    String
+  proof         Bytes
+  proofType     String
+  status        DepositStatus @default(PENDING)
+  reviewNote    String        @default("")
+  reviewedAt    DateTime?
+  createdAt     DateTime      @default(now())
+
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+}
+
+/// What a seller earns from one sold item: the price minus the shop's commission.
+model SellerEarning {
+  id         String        @id @default(cuid())
+  sellerId   String
+  seller     User          @relation(fields: [sellerId], references: [id])
+  orderId    String        @unique
+  order      Order         @relation(fields: [orderId], references: [id])
+  listingId  String
+  listing    Listing       @relation(fields: [listingId], references: [id])
+  /// Sale price, commission and what the seller gets (kobo)
+  gross      Int
+  commission Int
+  amount     Int
+  status     EarningStatus @default(PENDING)
+  reviewedAt DateTime?
+  createdAt  DateTime      @default(now())
+
+  @@index([status, createdAt])
+  @@index([sellerId, createdAt])
+}
+
+/// A seller asks to be paid their approved earnings into their bank account.
+model Withdrawal {
+  id            String           @id @default(cuid())
+  sellerId      String
+  seller        User             @relation(fields: [sellerId], references: [id])
+  amount        Int
+  bankName      String
+  accountName   String
+  accountNumber String
+  status        WithdrawalStatus @default(PENDING)
+  reviewNote    String           @default("")
+  reviewedAt    DateTime?
+  createdAt     DateTime         @default(now())
+
+  @@index([status, createdAt])
+  @@index([sellerId, createdAt])
 }

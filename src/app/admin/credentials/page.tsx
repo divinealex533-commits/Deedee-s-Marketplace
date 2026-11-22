@@ -30,6 +30,7 @@ export default async function CredentialsPage({
     orderBy: { createdAt: 'desc' },
     include: {
       _count: { select: { credentials: { where: { status: 'AVAILABLE' } }, orders: true } },
+      seller: { select: { name: true } },
     },
   });
 
@@ -101,7 +102,7 @@ export default async function CredentialsPage({
                   <tr key={l.id}>
                     <td>
                       <Link href={qs({ listing: l.id, page: undefined })} className="font-medium text-white hover:text-accent-text">{l.title}</Link>
-                      <div className="text-[13px] text-muted">{l.platform}</div>
+                      <div className="text-[13px] text-muted">{l.platform}{l.seller ? ` · by seller ${l.seller.name}` : ''}</div>
                       <EditListing listing={{ id: l.id, platform: l.platform, title: l.title, description: l.description, price: l.price / 100, active: l.active, hasImage: Boolean(l.imageAt) }} categories={categories} />
                     </td>
                     <td>

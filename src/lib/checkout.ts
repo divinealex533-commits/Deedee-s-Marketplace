@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import type { Prisma } from '@prisma/client';
 import { prisma } from './db';
+import { recordSellerEarnings } from './seller';
 
 type Tx = Prisma.TransactionClient;
 
@@ -118,6 +119,7 @@ async function fulfil(tx: Tx, c: { id: string; userId: string; listingId: string
   await tx.order.createMany({
     data: creds.map((x) => ({ userId: c.userId, listingId: c.listingId, credentialId: x.id, amount: c.unitPrice, checkoutId: c.id })),
   });
+  await recordSellerEarnings(tx, { checkoutId: c.id });
   return creds.length;
 }
 

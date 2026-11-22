@@ -82,7 +82,7 @@ export async function signup(_: FormState, fd: FormData): Promise<FormState> {
   });
 
   await createSession(user, true);
-  redirect('/dashboard?welcome=new');
+  redirect(user.accountType === 'SELLER' ? '/dashboard/seller?welcome=new' : '/dashboard?welcome=new');
 }
 
 export async function login(_: FormState, fd: FormData): Promise<FormState> {

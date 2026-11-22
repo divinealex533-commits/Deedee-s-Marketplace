@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from './db';
+import { recordSellerEarnings } from './seller';
 
 export const MAX_PER_ORDER = 50;
 
@@ -62,6 +63,8 @@ export async function purchase(opts: {
           tx.order.create({ data: { userId: opts.userId, listingId: listing.id, credentialId, amount: listing.price }, select: { id: true } }),
         ),
       );
+
+      await recordSellerEarnings(tx, { id: { in: orders.map((o) => o.id) } });
 
       try {
         await tx.transaction.create({

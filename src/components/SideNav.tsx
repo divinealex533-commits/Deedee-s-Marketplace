@@ -19,6 +19,9 @@ const ICONS = {
   payments: '💳',
   myorders: '📦',
   reviews: '⭐',
+  shop: '🏪',
+  tag: '🏷️',
+  sellers: '🧑‍💼',
 } as const;
 
 export type NavItem = { href: string; label: string; icon: keyof typeof ICONS; exact?: boolean };

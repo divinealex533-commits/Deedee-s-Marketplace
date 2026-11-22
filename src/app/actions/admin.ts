@@ -10,6 +10,7 @@ import { decryptSecret, encryptSecret } from '@/lib/crypto';
 import { naira } from '@/lib/format';
 import { readImage } from '@/lib/image';
 import { getReferralConfig } from '@/lib/settings';
+import { reverseSellerEarning } from '@/lib/seller';
 import type { FormState } from './types';
 
 const kobo = (nairaValue: number) => Math.round(nairaValue * 100);
@@ -271,6 +272,7 @@ export async function refundOrder(fd: FormData) {
     });
     if (claimed.count !== 1) return;
     await tx.user.update({ where: { id: order.userId }, data: { balance: { increment: order.amount } } });
+    await reverseSellerEarning(tx, order.id);
     await tx.transaction.create({
       data: { userId: order.userId, type: 'REFUND', amount: order.amount, description: `Refund: ${order.listing.title}` },
     });

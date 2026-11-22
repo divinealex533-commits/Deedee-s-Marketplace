@@ -18,7 +18,15 @@ const items: NavItem[] = [
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const user = await requireUser();
-  const nav = user.role === 'ADMIN' ? [...items, { href: '/admin', label: 'Admin', icon: 'pool' } as NavItem] : items;
+  const sellerItems: NavItem[] =
+    user.accountType === 'SELLER'
+      ? [
+          { href: '/dashboard/seller', label: 'Seller hub', icon: 'shop', exact: true },
+          { href: '/dashboard/seller/listings', label: 'My listings', icon: 'tag' },
+        ]
+      : [];
+  const base = [items[0]!, ...sellerItems, ...items.slice(1)];
+  const nav = user.role === 'ADMIN' ? [...base, { href: '/admin', label: 'Admin', icon: 'pool' } as NavItem] : base;
   return (
     <AppShell items={nav} user={user} balance={displayBalance(user)} badge={user.accountType === 'SELLER' ? 'Seller' : 'Buyer'} homeHref="/dashboard" banner={<AnnouncementBar />}>
       {children}
