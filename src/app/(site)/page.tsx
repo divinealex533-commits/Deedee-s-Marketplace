@@ -73,7 +73,7 @@ const features = [
 ];
 
 export default async function HomePage() {
-  const { users, delivered, inStock, categories, reviews, overall } = await getHomeData();
+  const { inStock, categories, reviews, overall } = await getHomeData();
   const heroRows = (categories.length ? categories.map((c) => c.name) : MARQUEE).slice(0, 3);
 
   return (
@@ -154,13 +154,13 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ───────────── STATS (real numbers) ───────────── */}
+      {/* ───────────── STATS (honest highlights; user/order counters come back once they're bigger) ───────────── */}
       <section aria-label="Key numbers" className="container-x pt-20">
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[
-            { icon: UserPlus, value: users.toLocaleString(), label: 'Registered users' },
-            { icon: Check, value: delivered.toLocaleString(), label: 'Accounts delivered' },
-            { icon: Sparkles, value: inStock.toLocaleString(), label: 'In stock now' },
+            { icon: Zap, value: 'Instant', label: 'Delivery from wallet' },
+            { icon: ShieldCheck, value: '100%', label: 'Refund if not as described' },
+            { icon: Sparkles, value: inStock ? inStock.toLocaleString() : 'New', label: inStock ? 'In stock now' : 'Stock added daily' },
             { icon: Clock, value: '24/7', label: 'WhatsApp support' },
           ].map(({ icon: Icon, value, label }) => (
             <div key={label} className="card p-6">
