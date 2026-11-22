@@ -12,10 +12,10 @@ export const metadata = { title: 'Marketplace' };
 export default async function MarketplacePage({
   searchParams,
 }: {
-  searchParams: Promise<{ platform?: string; q?: string }>;
+  searchParams: Promise<{ platform?: string; category?: string; q?: string }>;
 }) {
   const user = await requireUser();
-  const { platform, q } = await searchParams;
+  const { platform, category, q } = await searchParams;
 
   const [listings] = await Promise.all([
     prisma.listing.findMany({
@@ -23,6 +23,7 @@ export default async function MarketplacePage({
         active: true,
       },
       include: {
+            category: { select: { name: true, emoji: true } },
             _count: { select: { credentials: { where: { status: 'AVAILABLE' } } } },
             credentials: { where: { status: 'AVAILABLE' }, orderBy: { createdAt: 'asc' }, take: 3, select: { id: true, previewUrl: true } },
           },
@@ -49,10 +50,10 @@ export default async function MarketplacePage({
 
       <StockBrowser
         hrefBase="/dashboard/marketplace"
-        initialPlatform={platform ?? ''}
+        initialPlatform={category ?? platform ?? ''}
         initialQuery={q ?? ''}
         emptyText="No listings match that right now. Try another word or category, or message support."
-        cards={listings.map((l) => ({ id: l.id, title: l.title, platform: l.platform, description: l.description, price: l.price, stock: l._count.credentials, imageAt: l.imageAt, rating: ratings[l.id], showLogin: l.showLogin, items: l.credentials.map((c, i) => ({ id: c.id, ...itemPreview(c.previewUrl, i + 1) })) }))}
+        cards={listings.map((l) => ({ id: l.id, title: l.title, platform: l.platform, category: l.category?.name, categoryEmoji: l.category?.emoji, description: l.description, price: l.price, stock: l._count.credentials, imageAt: l.imageAt, rating: ratings[l.id], showLogin: l.showLogin, items: l.credentials.map((c, i) => ({ id: c.id, ...itemPreview(c.previewUrl, i + 1) })) }))}
       />
     </>
   );

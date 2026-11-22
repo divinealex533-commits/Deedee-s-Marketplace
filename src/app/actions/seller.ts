@@ -63,11 +63,18 @@ export async function submitSellerPayment(_: FormState, fd: FormData): Promise<F
 // ── Listings ─────────────────────────────────────────
 
 const listingSchema = z.object({
-  platform: z.string().trim().min(1, 'Choose a category.').max(40, 'Keep the category under 40 characters.'),
+  platform: z.string().trim().min(1, 'Choose a platform.').max(40, 'Keep the platform under 40 characters.'),
   title: z.string().trim().min(3, 'Give the listing a title.').max(120),
   description: z.string().trim().max(1000).optional().default(''),
   price: z.coerce.number().min(100, 'The lowest price is ₦100.').max(10_000_000),
 });
+
+async function pickedCategory(fd: FormData) {
+  const id = String(fd.get('categoryId') ?? '');
+  if (!id) return null;
+  const c = await prisma.category.findUnique({ where: { id }, select: { id: true } });
+  return c?.id ?? null;
+}
 
 export async function createSellerListing(_: FormState, fd: FormData): Promise<FormState> {
   const user = await requireSeller();
@@ -83,6 +90,7 @@ export async function createSellerListing(_: FormState, fd: FormData): Promise<F
   await prisma.listing.create({
     data: {
       sellerId: user.id,
+      categoryId: await pickedCategory(fd),
       platform,
       title,
       description,
@@ -108,7 +116,7 @@ export async function editSellerListing(_: FormState, fd: FormData): Promise<For
   const { platform, title, description, price } = parsed.data;
   await prisma.listing.update({
     where: { id },
-    data: { platform, title, description, price: kobo(price), active: wantsActive, pausedExpired: false },
+    data: { categoryId: await pickedCategory(fd), platform, title, description, price: kobo(price), active: wantsActive, pausedExpired: false },
   });
   revalidatePath('/dashboard', 'layout');
   return { ok: `Saved “${title}”.` };

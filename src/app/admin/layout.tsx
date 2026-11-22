@@ -11,6 +11,7 @@ const items: NavItem[] = [
   { href: '/admin/payments', label: 'Payments', icon: 'payments' },
   { href: '/admin/deposits', label: 'Deposits', icon: 'deposits' },
   { href: '/admin/credentials', label: 'Credentials pool', icon: 'pool' },
+  { href: '/admin/categories', label: 'Categories', icon: 'tag' },
   { href: '/admin/orders', label: 'Orders', icon: 'orders' },
   { href: '/admin/users', label: 'Users', icon: 'users' },
   { href: '/admin/sellers', label: 'Sellers', icon: 'sellers' },

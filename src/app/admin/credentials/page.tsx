@@ -63,6 +63,7 @@ export default async function CredentialsPage({
 
   // Built-in categories plus any custom ones already used on a listing
   const categories = Array.from(new Set([...PLATFORMS, ...listings.map((l) => l.platform)]));
+  const groups = await prisma.category.findMany({ orderBy: [{ order: 'asc' }, { name: 'asc' }], select: { id: true, name: true, emoji: true } });
   const listingOptions = listings.map((l) => ({ id: l.id, label: `${l.platform} · ${l.title} (${naira(l.price)})` }));
 
   return (
@@ -77,7 +78,7 @@ export default async function CredentialsPage({
       <div className="flex flex-wrap gap-5">
         <section aria-labelledby="new-listing" className="card min-w-0 flex-[1_1_320px] p-6">
           <h2 id="new-listing" className="mb-4 text-lg font-semibold text-white">1. New listing</h2>
-          <CreateListingForm categories={categories} />
+          <CreateListingForm categories={categories} groups={groups} />
         </section>
         <section aria-labelledby="add-creds" className="card min-w-0 flex-[2_1_440px] p-6">
           <h2 id="add-creds" className="mb-4 text-lg font-semibold text-white">2. Add credentials</h2>
@@ -103,7 +104,7 @@ export default async function CredentialsPage({
                     <td>
                       <Link href={qs({ listing: l.id, page: undefined })} className="font-medium text-white hover:text-accent-text">{l.title}</Link>
                       <div className="text-[13px] text-muted">{l.platform}{l.seller ? ` · by seller ${l.seller.name}` : ''}</div>
-                      <EditListing listing={{ id: l.id, platform: l.platform, title: l.title, description: l.description, price: l.price / 100, active: l.active, hasImage: Boolean(l.imageAt) }} categories={categories} />
+                      <EditListing groups={groups} listing={{ id: l.id, categoryId: l.categoryId, platform: l.platform, title: l.title, description: l.description, price: l.price / 100, active: l.active, hasImage: Boolean(l.imageAt) }} categories={categories} />
                     </td>
                     <td>
                       <div className="flex items-center gap-2">

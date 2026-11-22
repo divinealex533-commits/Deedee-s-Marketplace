@@ -141,11 +141,11 @@ export async function announceStock(listingId: string, added: number) {
     if (!bot.token || !bot.autoPost) return;
     const l = await prisma.listing.findUnique({
       where: { id: listingId },
-      select: { title: true, platform: true, price: true, active: true, _count: { select: { credentials: { where: { status: 'AVAILABLE' } } } } },
+      select: { title: true, platform: true, category: { select: { name: true } }, price: true, active: true, _count: { select: { credentials: { where: { status: 'AVAILABLE' } } } } },
     });
     if (!l || !l.active) return;
     await postToChannel(
-      `🆕 <b>New stock just dropped!</b>\n\n<b>${esc(l.title)}</b>\n📂 ${esc(l.platform)}\n💰 ${naira(l.price)} each\n📦 ${l._count.credentials} in stock\n\nPreview before you pay. Wallet orders deliver instantly.`,
+      `🆕 <b>New stock just dropped!</b>\n\n<b>${esc(l.title)}</b>\n📂 ${esc(l.category?.name ?? l.platform)}\n💰 ${naira(l.price)} each\n📦 ${l._count.credentials} in stock\n\nPreview before you pay. Wallet orders deliver instantly.`,
       [[{ text: '🛒 Buy now', url: `${SITE_URL}/dashboard/marketplace/${listingId}` }]],
     );
   } catch {

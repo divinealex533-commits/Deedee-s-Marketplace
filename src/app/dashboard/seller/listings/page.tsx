@@ -6,6 +6,7 @@ import { naira } from '@/lib/format';
 import { PLATFORMS } from '@/lib/site';
 import { getSellerConfig, sellerActive } from '@/lib/seller';
 import ActionForm from '@/components/ActionForm';
+import CategorySelect from '@/components/CategorySelect';
 import { PlatformTile } from '@/components/PlatformIcon';
 import { addSellerStock, clearSellerStock, createSellerListing, editSellerListing } from '@/app/actions/seller';
 
@@ -15,8 +16,8 @@ export const dynamic = 'force-dynamic';
 function CategoryField({ id, categories, value }: { id: string; categories: string[]; value?: string }) {
   return (
     <div>
-      <label htmlFor={id} className="label">Category</label>
-      <input id={id} name="platform" list={`${id}-list`} required maxLength={40} autoComplete="off" defaultValue={value} placeholder="e.g. Instagram" className="input" />
+      <label htmlFor={id} className="label">Platform</label>
+      <input id={id} name="platform" list={`${id}-list`} required maxLength={40} autoComplete="off" defaultValue={value} placeholder="e.g. Google Voice" className="input" />
       <datalist id={`${id}-list`}>{categories.map((c) => <option key={c} value={c} />)}</datalist>
     </div>
   );
@@ -28,13 +29,14 @@ export default async function SellerListingsPage() {
   const active = sellerActive(user);
   const cfg = await getSellerConfig();
 
-  const [listings, used] = await Promise.all([
+  const [listings, used, groups] = await Promise.all([
     prisma.listing.findMany({
       where: { sellerId: user.id },
       orderBy: { createdAt: 'desc' },
       include: { _count: { select: { credentials: { where: { status: 'AVAILABLE' } }, orders: true } } },
     }),
     prisma.listing.findMany({ where: { active: true }, distinct: ['platform'], select: { platform: true } }),
+    prisma.category.findMany({ orderBy: [{ order: 'asc' }, { name: 'asc' }], select: { id: true, name: true, emoji: true } }),
   ]);
   const categories = Array.from(new Set([...PLATFORMS, ...used.map((u) => u.platform)]));
 
@@ -58,6 +60,7 @@ export default async function SellerListingsPage() {
             <ActionForm action={createSellerListing} compress="image" resetOnOk submit="Create listing" pendingText="Creating…">
               <div className="grid gap-4 sm:grid-cols-2">
                 <CategoryField id="new-cat" categories={categories} />
+                <CategorySelect id="new-group" categories={groups} />
                 <div>
                   <label htmlFor="new-price" className="label">Price per item (₦)</label>
                   <input id="new-price" name="price" type="number" min={100} step="any" required className="input" />
@@ -121,6 +124,7 @@ export default async function SellerListingsPage() {
                     <input type="hidden" name="id" value={l.id} />
                     <div className="grid gap-4 sm:grid-cols-2">
                       <CategoryField id={`cat-${l.id}`} categories={categories} value={l.platform} />
+                      <CategorySelect id={`grp-${l.id}`} categories={groups} value={l.categoryId} />
                       <div>
                         <label htmlFor={`price-${l.id}`} className="label">Price (₦)</label>
                         <input id={`price-${l.id}`} name="price" type="number" min={100} step="any" required defaultValue={l.price / 100} className="input" />

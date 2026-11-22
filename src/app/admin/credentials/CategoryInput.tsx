@@ -1,15 +1,14 @@
 'use client';
 
 /**
- * Category picker for listings. Pick an existing category from the list,
- * or type a new name (e.g. "Germany Facebook") to create a new category.
- * New categories show up as filters in the marketplace automatically.
+ * Platform picker for listings (sets the icon, e.g. Google Voice). Pick one from the list or type a new one.
+ * Customers browse by Category, chosen separately (Admin → Categories).
  */
 export default function CategoryInput({ id, categories, defaultValue }: { id: string; categories: string[]; defaultValue?: string }) {
   const listId = `${id}-options`;
   return (
     <div>
-      <label htmlFor={id} className="label">Category</label>
+      <label htmlFor={id} className="label">Platform</label>
       <input
         id={id}
         name="platform"
@@ -18,13 +17,13 @@ export default function CategoryInput({ id, categories, defaultValue }: { id: st
         maxLength={40}
         autoComplete="off"
         defaultValue={defaultValue}
-        placeholder="Pick one or type a new category"
+        placeholder="e.g. Google Voice"
         className="input"
       />
       <datalist id={listId}>
         {categories.map((c) => <option key={c} value={c} />)}
       </datalist>
-      <p className="mt-1.5 text-[13px] text-muted">Type a new name to create a new category.</p>
+      <p className="mt-1.5 text-[13px] text-muted">Pick one or type a new name.</p>
     </div>
   );
 }

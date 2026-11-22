@@ -9,13 +9,15 @@ import SubmitButton from '@/components/SubmitButton';
 import { compressField, useActionForm } from '@/components/useActionForm';
 import { PLATFORMS } from '@/lib/site';
 import CategoryInput from './CategoryInput';
+import CategorySelect from '@/components/CategorySelect';
 
-export function CreateListingForm({ categories = PLATFORMS }: { categories?: readonly string[] }) {
+export function CreateListingForm({ categories = PLATFORMS, groups = [] }: { categories?: readonly string[]; groups?: { id: string; name: string; emoji: string }[] }) {
   const { state, pending, onSubmit, ref } = useActionForm(createListing, { resetOnOk: true, transform: compressField('image') });
   return (
     <form ref={ref} onSubmit={onSubmit} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <CategoryInput id="platform" categories={[...categories]} />
+        <CategorySelect id="new-category" categories={groups} />
         <div>
           <label htmlFor="price" className="label">Price (₦)</label>
           <input id="price" name="price" type="number" min={1} step="any" required placeholder="15000" className="input" />

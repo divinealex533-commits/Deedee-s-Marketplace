@@ -10,6 +10,7 @@ import ReviewCarousel from '@/components/ReviewCarousel';
 import Stars from '@/components/Stars';
 import { PLATFORMS, site, whatsappLink } from '@/lib/site';
 import { PlatformTile } from '@/components/PlatformIcon';
+import CategoryTile from '@/components/CategoryTile';
 import HeroSlider from '@/components/HeroSlider';
 
 // Numbers and stock refresh every 60 seconds: fast pages, quiet database.
@@ -22,13 +23,19 @@ const getHomeData = unstable_cache(
         prisma.credential.count({ where: { status: 'AVAILABLE', listing: { active: true } } }),
         prisma.listing.findMany({
           where: { active: true, credentials: { some: { status: 'AVAILABLE' } } },
-          select: { platform: true, _count: { select: { credentials: { where: { status: 'AVAILABLE' } } } } },
+          select: { platform: true, category: { select: { name: true, emoji: true, order: true } }, _count: { select: { credentials: { where: { status: 'AVAILABLE' } } } } },
         }),
       ]);
       // Homepage shows categories only; the listings themselves are in the marketplace after login
-      const byCategory = new Map<string, number>();
-      for (const l of listings) byCategory.set(l.platform, (byCategory.get(l.platform) ?? 0) + l._count.credentials);
-      const categories = [...byCategory].map(([name, stock]) => ({ name, stock })).sort((a, b) => b.stock - a.stock);
+      // Grouped by category (Admin → Categories); listings without one are grouped by platform
+      const byCategory = new Map<string, { name: string; emoji: string; order: number; stock: number }>();
+      for (const l of listings) {
+        const name = l.category?.name ?? l.platform;
+        const g = byCategory.get(name) ?? { name, emoji: l.category?.emoji ?? '', order: l.category?.order ?? 1000, stock: 0 };
+        g.stock += l._count.credentials;
+        byCategory.set(name, g);
+      }
+      const categories = [...byCategory.values()].sort((a, b) => a.order - b.order || b.stock - a.stock);
       const [latest, overall] = await Promise.all([
         prisma.review.findMany({
           where: { hidden: false, comment: { not: '' }, rating: { gte: 4 } },
@@ -47,10 +54,10 @@ const getHomeData = unstable_cache(
         categories,
       };
     } catch {
-      return { users: 0, delivered: 0, inStock: 0, categories: [] as { name: string; stock: number }[], reviews: [], overall: { avg: 0, count: 0 } };
+      return { users: 0, delivered: 0, inStock: 0, categories: [] as { name: string; emoji: string; order: number; stock: number }[], reviews: [], overall: { avg: 0, count: 0 } };
     }
   },
-  ['home-data-v2'],
+  ['home-data-v3'],
   { revalidate: 60 },
 );
 
@@ -74,7 +81,7 @@ const features = [
 
 export default async function HomePage() {
   const { inStock, categories, reviews, overall } = await getHomeData();
-  const heroRows = (categories.length ? categories.map((c) => c.name) : MARQUEE).slice(0, 3);
+  const heroRows = (categories.length ? categories : MARQUEE.map((name) => ({ name, emoji: '' }))).slice(0, 3);
 
   return (
     <>
@@ -114,11 +121,11 @@ export default async function HomePage() {
                 <span className="text-muted">Updated daily</span>
               </div>
               <ul className="mt-3 space-y-2.5">
-                {heroRows.map((p) => (
-                  <li key={p} className="flex items-center gap-3 rounded-2xl border border-line bg-panel2 p-3">
-                    <PlatformTile platform={p} size={48} className="shrink-0" />
+                {heroRows.map(({ name, emoji }) => (
+                  <li key={name} className="flex items-center gap-3 rounded-2xl border border-line bg-panel2 p-3">
+                    <CategoryTile name={name} emoji={emoji} size={48} className="shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <div className="truncate font-semibold text-white">{p} accounts</div>
+                      <div className="truncate font-semibold text-white">{name}</div>
                       <div className="text-[13px] text-muted">Log in to see what’s available</div>
                     </div>
                     <BadgeCheck className="h-5 w-5 text-accent-text" aria-hidden="true" />
@@ -183,10 +190,10 @@ export default async function HomePage() {
           <Link href="/signup" className="btn btn-ghost">Open the marketplace <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
         </div>
         <ul className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {(categories.length ? categories : MARQUEE.slice(0, 8).map((name) => ({ name, stock: 0 }))).map(({ name, stock }) => (
+          {(categories.length ? categories : MARQUEE.slice(0, 8).map((name) => ({ name, emoji: '', stock: 0 }))).map(({ name, emoji, stock }) => (
             <li key={name}>
               <Link href="/signup" className="card flex h-full items-center gap-4 p-5 transition hover:border-accent">
-                <PlatformTile platform={name} size={44} className="shrink-0" />
+                <CategoryTile name={name} emoji={emoji} size={44} className="shrink-0" />
                 <div className="min-w-0">
                   <div className="truncate font-semibold text-white">{name}</div>
                   <div className="text-[13px] text-muted">{stock ? `${stock.toLocaleString()} in stock` : 'New stock soon'}</div>

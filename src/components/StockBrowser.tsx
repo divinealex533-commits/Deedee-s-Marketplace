@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Search, X } from 'lucide-react';
 import ProductCard, { type ProductCardData } from './ProductCard';
-import { PlatformTile } from './PlatformIcon';
+import CategoryTile from './CategoryTile';
 
 /** Category icons + instant search over the listings. Filters as you type, no page reload. */
 export default function StockBrowser({
@@ -22,19 +22,26 @@ export default function StockBrowser({
   const [platform, setPlatform] = useState(initialPlatform);
   const [q, setQ] = useState(initialQuery);
 
-  // Categories that have listings, with how many are in stock
+  // A listing's group: its category, or its platform when it has none
+  const groupOf = (c: ProductCardData) => c.category || c.platform;
+
+  // Categories that have listings, with how many are in stock and their icon
   const cats = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const c of cards) m.set(c.platform, (m.get(c.platform) ?? 0) + (c.stock > 0 ? 1 : 0));
-    return [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    const m = new Map<string, { n: number; emoji: string }>();
+    for (const c of cards) {
+      const g = m.get(groupOf(c)) ?? { n: 0, emoji: c.category ? c.categoryEmoji ?? '' : '' };
+      g.n += c.stock > 0 ? 1 : 0;
+      m.set(groupOf(c), g);
+    }
+    return [...m.entries()].sort((a, b) => b[1].n - a[1].n || a[0].localeCompare(b[0]));
   }, [cards]);
 
   const shown = useMemo(() => {
     const words = q.toLowerCase().split(/\s+/).filter(Boolean);
     return cards.filter((c) => {
-      if (platform && c.platform !== platform) return false;
+      if (platform && groupOf(c) !== platform && c.platform !== platform) return false;
       if (!words.length) return true;
-      const hay = `${c.title} ${c.platform} ${c.description ?? ''}`.toLowerCase();
+      const hay = `${c.title} ${c.platform} ${c.category ?? ''} ${c.description ?? ''}`.toLowerCase();
       return words.every((w) => hay.includes(w));
     });
   }, [cards, platform, q]);
@@ -73,10 +80,10 @@ export default function StockBrowser({
             <span aria-hidden="true" className="emoji flex h-9 w-9 items-center justify-center rounded-xl bg-line text-xl leading-none">🛍️</span>
             All
           </button>
-          {cats.map(([p, n]) => (
+          {cats.map(([p, { n, emoji }]) => (
             <button key={p} type="button" onClick={() => setPlatform(platform === p ? '' : p)} aria-pressed={platform === p} className={chip(platform === p)}>
               <span className="relative">
-                <PlatformTile platform={p} size={36} />
+                <CategoryTile name={p} emoji={emoji} size={36} />
                 {n > 0 && <span className="absolute -right-1.5 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">{n}</span>}
               </span>
               <span className="max-w-[84px] truncate">{p}</span>

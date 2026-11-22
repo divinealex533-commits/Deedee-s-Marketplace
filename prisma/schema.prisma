@@ -161,9 +161,25 @@ model Listing {
   /// true when hidden automatically because the seller's monthly plan ran out
   pausedExpired Boolean    @default(false)
   earnings    SellerEarning[]
+  /// Group shown to customers (e.g. "Texting apps" holds Google Voice and TextNow). Empty = grouped by platform.
+  categoryId  String?
+  category    Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   createdAt   DateTime     @default(now())
 
   @@index([sellerId])
+  @@index([categoryId])
+}
+
+/// A category customers browse by, managed in Admin → Categories.
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  /// Shown on the category chip, e.g. 💬
+  emoji     String    @default("")
+  /// Lower numbers show first
+  order     Int       @default(0)
+  listings  Listing[]
+  createdAt DateTime  @default(now())
 }
 
 /// Kept in its own table so listing queries don't load image bytes.

@@ -9,11 +9,12 @@ import { compressField, useActionForm } from '@/components/useActionForm';
 import { deleteListing, editListing } from '@/app/actions/admin';
 import { PLATFORMS } from '@/lib/site';
 import CategoryInput from './CategoryInput';
+import CategorySelect from '@/components/CategorySelect';
 
-type L = { id: string; platform: string; title: string; description: string; price: number; active: boolean; hasImage: boolean };
+type L = { id: string; categoryId?: string | null; platform: string; title: string; description: string; price: number; active: boolean; hasImage: boolean };
 
 /** "Edit" button that opens a pop-up to change everything about a listing, or delete it. */
-export default function EditListing({ listing, categories = PLATFORMS }: { listing: L; categories?: readonly string[] }) {
+export default function EditListing({ listing, categories = PLATFORMS, groups = [] }: { listing: L; categories?: readonly string[]; groups?: { id: string; name: string; emoji: string }[] }) {
   const [open, setOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const edit = useActionForm(editListing, { transform: compressField('image') });
@@ -40,6 +41,7 @@ export default function EditListing({ listing, categories = PLATFORMS }: { listi
           <input type="hidden" name="id" value={listing.id} />
           <div className="grid gap-4 sm:grid-cols-2">
             <CategoryInput id={f('platform')} categories={platforms} defaultValue={listing.platform} />
+            <CategorySelect id={f('category')} categories={groups} value={listing.categoryId} />
             <div>
               <label htmlFor={f('price')} className="label">Price (₦)</label>
               <input id={f('price')} name="price" type="number" min={1} step="any" required defaultValue={listing.price} className="input" />

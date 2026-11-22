@@ -10,6 +10,9 @@ export type ProductCardData = {
   id: string;
   title: string;
   platform: string;
+  /** Category customers browse by (Admin → Categories); falls back to the platform */
+  category?: string;
+  categoryEmoji?: string;
   description: string;
   price: number;
   stock: number;

@@ -42,11 +42,19 @@ function cleanPreview(raw: string): string | null {
 // ── Listings ─────────────────────────────────────────
 
 const listingSchema = z.object({
-  platform: z.string().trim().min(1, 'Choose a category.').max(40, 'Keep the category name under 40 characters.'),
+  platform: z.string().trim().min(1, 'Choose a platform.').max(40, 'Keep the platform name under 40 characters.'),
   title: z.string().trim().min(3, 'Give the listing a title.').max(120),
   description: z.string().trim().max(1000).optional().default(''),
   price: z.coerce.number().positive('Enter a price above ₦0.').max(100_000_000),
 });
+
+/** The category picked in the form, if it still exists (empty = none). */
+async function pickedCategory(fd: FormData) {
+  const id = String(fd.get('categoryId') ?? '');
+  if (!id) return null;
+  const c = await prisma.category.findUnique({ where: { id }, select: { id: true } });
+  return c?.id ?? null;
+}
 
 export async function createListing(_: FormState, fd: FormData): Promise<FormState> {
   await requireAdmin();
@@ -55,9 +63,11 @@ export async function createListing(_: FormState, fd: FormData): Promise<FormSta
   const { platform, title, description, price } = parsed.data;
   const img = await readImage(fd.get('image'), 3 * 1024 * 1024);
   if ('error' in img) return { error: img.error };
+  const categoryId = await pickedCategory(fd);
 
   await prisma.listing.create({
     data: {
+      categoryId,
       platform,
       title,
       description,
@@ -100,6 +110,7 @@ export async function editListing(_: FormState, fd: FormData): Promise<FormState
     await tx.listing.update({
       where: { id },
       data: {
+        categoryId: await pickedCategory(fd),
         platform,
         title,
         description,
