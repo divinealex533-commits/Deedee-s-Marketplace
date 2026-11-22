@@ -109,7 +109,7 @@ export async function botReply(text: string, firstName: string): Promise<{ html:
         : { html: 'Our channel is coming soon. Meanwhile, chat with us on WhatsApp.', rows: [[wa]] };
     default:
       return {
-        html: `👋 Hi ${esc(firstName || 'there')}! Welcome to <b>DeeDee’s Marketplace</b>.\n\nPremium accounts, delivered fast. Preview before you pay, fund with your bank app, and get your login in your dashboard.\n\nWhat would you like to do?`,
+        html: `👋 Hi ${esc(firstName || 'there')}! Welcome to <b>DeeDee’s Marketplace</b> support.\n\nHow can I help you today? Tap a button below, or open the <b>Menu</b> for more options.`,
         rows: menu,
       };
   }
