@@ -9,6 +9,7 @@ import { AddCredentialForms, CreateListingForm, ListingImageForm } from './Forms
 import ListingImage from '@/components/ListingImage';
 import { PlatformTile } from '@/components/PlatformIcon';
 import EditListing from './EditListing';
+import { PLATFORMS } from '@/lib/site';
 import RevealCell from './RevealCell';
 
 export const metadata = { title: 'Credentials pool' };
@@ -59,6 +60,8 @@ export default async function CredentialsPage({
   const pill = (active: boolean) =>
     `rounded-full border px-3.5 py-2 text-sm font-medium ${active ? 'border-accent bg-accent text-white' : 'border-line2 text-soft hover:text-white'}`;
 
+  // Built-in categories plus any custom ones already used on a listing
+  const categories = Array.from(new Set([...PLATFORMS, ...listings.map((l) => l.platform)]));
   const listingOptions = listings.map((l) => ({ id: l.id, label: `${l.platform} · ${l.title} (${naira(l.price)})` }));
 
   return (
@@ -73,7 +76,7 @@ export default async function CredentialsPage({
       <div className="flex flex-wrap gap-5">
         <section aria-labelledby="new-listing" className="card min-w-0 flex-[1_1_320px] p-6">
           <h2 id="new-listing" className="mb-4 text-lg font-semibold text-white">1. New listing</h2>
-          <CreateListingForm />
+          <CreateListingForm categories={categories} />
         </section>
         <section aria-labelledby="add-creds" className="card min-w-0 flex-[2_1_440px] p-6">
           <h2 id="add-creds" className="mb-4 text-lg font-semibold text-white">2. Add credentials</h2>
@@ -99,7 +102,7 @@ export default async function CredentialsPage({
                     <td>
                       <Link href={qs({ listing: l.id, page: undefined })} className="font-medium text-white hover:text-accent-text">{l.title}</Link>
                       <div className="text-[13px] text-muted">{l.platform}</div>
-                      <EditListing listing={{ id: l.id, platform: l.platform, title: l.title, description: l.description, price: l.price / 100, active: l.active, hasImage: Boolean(l.imageAt) }} />
+                      <EditListing listing={{ id: l.id, platform: l.platform, title: l.title, description: l.description, price: l.price / 100, active: l.active, hasImage: Boolean(l.imageAt) }} categories={categories} />
                     </td>
                     <td>
                       <div className="flex items-center gap-2">

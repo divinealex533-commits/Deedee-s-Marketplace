@@ -5,15 +5,11 @@ import {
   Phone, ReceiptText, ShieldCheck, Sparkles, Upload, UserPlus, Wallet, Zap,
 } from 'lucide-react';
 import { prisma } from '@/lib/db';
-import { ratingsByListing, reviewAuthor } from '@/lib/reviews';
+import { reviewAuthor } from '@/lib/reviews';
 import ReviewCarousel from '@/components/ReviewCarousel';
 import Stars from '@/components/Stars';
-import { naira } from '@/lib/format';
 import { PLATFORMS, site, whatsappLink } from '@/lib/site';
-import ListingImage from '@/components/ListingImage';
 import { PlatformTile } from '@/components/PlatformIcon';
-import { itemPreview } from '@/lib/image';
-import StockBrowser from '@/components/StockBrowser';
 import HeroSlider from '@/components/HeroSlider';
 
 // Numbers and stock refresh every 60 seconds: fast pages, quiet database.
@@ -26,16 +22,14 @@ const getHomeData = unstable_cache(
         prisma.credential.count({ where: { status: 'AVAILABLE', listing: { active: true } } }),
         prisma.listing.findMany({
           where: { active: true, credentials: { some: { status: 'AVAILABLE' } } },
-          include: {
-            _count: { select: { credentials: { where: { status: 'AVAILABLE' } } } },
-            credentials: { where: { status: 'AVAILABLE' }, orderBy: { createdAt: 'asc' }, take: 3, select: { id: true, previewUrl: true } },
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 30,
+          select: { platform: true, _count: { select: { credentials: { where: { status: 'AVAILABLE' } } } } },
         }),
       ]);
-      const [ratings, latest, overall] = await Promise.all([
-        ratingsByListing(listings.map((l) => l.id)),
+      // Homepage shows categories only; the listings themselves are in the marketplace after login
+      const byCategory = new Map<string, number>();
+      for (const l of listings) byCategory.set(l.platform, (byCategory.get(l.platform) ?? 0) + l._count.credentials);
+      const categories = [...byCategory].map(([name, stock]) => ({ name, stock })).sort((a, b) => b.stock - a.stock);
+      const [latest, overall] = await Promise.all([
         prisma.review.findMany({
           where: { hidden: false, comment: { not: '' }, rating: { gte: 4 } },
           orderBy: { createdAt: 'desc' },
@@ -50,25 +44,13 @@ const getHomeData = unstable_cache(
         inStock,
         reviews: latest.map((r) => ({ id: r.id, rating: r.rating, comment: r.comment, name: reviewAuthor(r), item: r.listing?.title ?? null, source: r.source })),
         overall: { avg: overall._avg.rating ?? 0, count: overall._count._all },
-        // Dates don't survive the cache, so store the image time as a number
-        listings: listings.map((l) => ({
-          id: l.id,
-          title: l.title,
-          platform: l.platform,
-          description: l.description,
-          price: l.price,
-          stock: l._count.credentials,
-          imageAt: l.imageAt ? l.imageAt.getTime() : null,
-          rating: ratings[l.id],
-          showLogin: l.showLogin,
-          items: l.credentials.map((c, i) => ({ id: c.id, ...itemPreview(c.previewUrl, i + 1) })),
-        })),
+        categories,
       };
     } catch {
-      return { users: 0, delivered: 0, inStock: 0, listings: [], reviews: [], overall: { avg: 0, count: 0 } };
+      return { users: 0, delivered: 0, inStock: 0, categories: [] as { name: string; stock: number }[], reviews: [], overall: { avg: 0, count: 0 } };
     }
   },
-  ['home-data'],
+  ['home-data-v2'],
   { revalidate: 60 },
 );
 
@@ -91,8 +73,8 @@ const features = [
 ];
 
 export default async function HomePage() {
-  const { users, delivered, inStock, listings, reviews, overall } = await getHomeData();
-  const cards = listings.map((l) => ({ ...l, imageAt: l.imageAt ? new Date(l.imageAt) : null }));
+  const { users, delivered, inStock, categories, reviews, overall } = await getHomeData();
+  const heroRows = (categories.length ? categories.map((c) => c.name) : MARQUEE).slice(0, 3);
 
   return (
     <>
@@ -128,23 +110,18 @@ export default async function HomePage() {
                 <Wallet className="h-9 w-9 text-white/80" aria-hidden="true" />
               </div>
               <div className="mt-4 flex items-center justify-between px-1 text-sm">
-                <span className="font-semibold text-white">Fresh in stock</span>
-                <span className="text-muted">Tap to preview</span>
+                <span className="font-semibold text-white">Popular categories</span>
+                <span className="text-muted">Updated daily</span>
               </div>
               <ul className="mt-3 space-y-2.5">
-                {(cards.length
-                  ? cards.slice(0, 3)
-                  : PLATFORMS.slice(0, 3).map((p) => ({ id: p, title: `${p} accounts`, platform: p, price: 0, stock: 0, imageAt: null, description: '' }))
-                ).map((l) => (
-                  <li key={l.id} className="flex items-center gap-3 rounded-2xl border border-line bg-panel2 p-3">
-                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl">
-                      <ListingImage id={l.id} imageAt={l.imageAt} platform={l.platform} title={l.title} className="h-full [&_span]:hidden [&_svg]:h-5 [&_svg]:w-5" />
-                    </div>
+                {heroRows.map((p) => (
+                  <li key={p} className="flex items-center gap-3 rounded-2xl border border-line bg-panel2 p-3">
+                    <PlatformTile platform={p} size={48} className="shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <div className="truncate font-semibold text-white">{l.title}</div>
-                      <div className="text-[13px] text-muted">{l.stock ? `${l.stock} available` : l.platform}</div>
+                      <div className="truncate font-semibold text-white">{p} accounts</div>
+                      <div className="text-[13px] text-muted">Log in to see what’s available</div>
                     </div>
-                    {l.price ? <div className="font-display font-bold text-white">{naira(l.price)}</div> : <BadgeCheck className="h-5 w-5 text-accent-text" aria-hidden="true" />}
+                    <BadgeCheck className="h-5 w-5 text-accent-text" aria-hidden="true" />
                   </li>
                 ))}
               </ul>
@@ -195,27 +172,39 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ───────────── LIVE STOCK ───────────── */}
+      {/* ───────────── CATEGORIES (listings stay in the marketplace, after login) ───────────── */}
       <section id="stock" className="container-x scroll-mt-24 pt-28">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="eyebrow mb-3">Marketplace</p>
-            <h2 className="h-section">Fresh in stock</h2>
-            <p className="mt-3 max-w-xl text-[17px] text-muted">Every listing shows a photo and a preview of each item, so you know exactly what you’re getting.</p>
+            <h2 className="h-section">Shop by category</h2>
+            <p className="mt-3 max-w-xl text-[17px] text-muted">Create a free account or log in to see every listing, with photos and a preview of each item before you buy.</p>
           </div>
-          <Link href="/signup" className="btn btn-ghost">See everything <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+          <Link href="/signup" className="btn btn-ghost">Open the marketplace <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
         </div>
-        {cards.length ? (
-          <div className="mt-10">
-            <StockBrowser cards={cards} hrefBase="/dashboard/marketplace" />
+        <ul className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          {(categories.length ? categories : MARQUEE.slice(0, 8).map((name) => ({ name, stock: 0 }))).map(({ name, stock }) => (
+            <li key={name}>
+              <Link href="/signup" className="card flex h-full items-center gap-4 p-5 transition hover:border-accent">
+                <PlatformTile platform={name} size={44} className="shrink-0" />
+                <div className="min-w-0">
+                  <div className="truncate font-semibold text-white">{name}</div>
+                  <div className="text-[13px] text-muted">{stock ? `${stock.toLocaleString()} in stock` : 'New stock soon'}</div>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <div className="card mt-6 flex flex-wrap items-center justify-between gap-4 p-6">
+          <div className="flex items-center gap-3">
+            <Lock className="h-6 w-6 shrink-0 text-accent-text" aria-hidden="true" />
+            <p className="text-soft">Listings, prices and previews are shown to members only.</p>
           </div>
-        ) : (
-          <div className="card mt-10 p-10 text-center">
-            <Sparkles className="mx-auto h-8 w-8 text-accent-text" aria-hidden="true" />
-            <p className="mt-3 text-lg font-semibold text-white">New stock is on the way</p>
-            <p className="mt-1 text-muted">Create your account now and you’ll be ready the moment it drops.</p>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/login" className="btn btn-ghost">Log in</Link>
+            <Link href="/signup" className="btn btn-primary">Create free account</Link>
           </div>
-        )}
+        </div>
       </section>
 
       {/* ───────────── FEATURES (bento) ───────────── */}

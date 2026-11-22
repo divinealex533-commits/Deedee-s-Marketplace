@@ -8,16 +8,17 @@ import SubmitButton from '@/components/SubmitButton';
 import { compressField, useActionForm } from '@/components/useActionForm';
 import { deleteListing, editListing } from '@/app/actions/admin';
 import { PLATFORMS } from '@/lib/site';
+import CategoryInput from './CategoryInput';
 
 type L = { id: string; platform: string; title: string; description: string; price: number; active: boolean; hasImage: boolean };
 
 /** "Edit" button that opens a pop-up to change everything about a listing, or delete it. */
-export default function EditListing({ listing }: { listing: L }) {
+export default function EditListing({ listing, categories = PLATFORMS }: { listing: L; categories?: readonly string[] }) {
   const [open, setOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const edit = useActionForm(editListing, { transform: compressField('image') });
   const del = useActionForm(deleteListing);
-  const platforms = PLATFORMS.includes(listing.platform as (typeof PLATFORMS)[number]) ? PLATFORMS : [listing.platform, ...PLATFORMS];
+  const platforms = categories.includes(listing.platform) ? [...categories] : [listing.platform, ...categories];
 
   // Close shortly after a successful save/delete
   useEffect(() => {
@@ -38,12 +39,7 @@ export default function EditListing({ listing }: { listing: L }) {
         <form ref={edit.ref} onSubmit={edit.onSubmit} className="space-y-4">
           <input type="hidden" name="id" value={listing.id} />
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label htmlFor={f('platform')} className="label">Platform</label>
-              <select id={f('platform')} name="platform" defaultValue={listing.platform} className="input">
-                {platforms.map((p) => <option key={p}>{p}</option>)}
-              </select>
-            </div>
+            <CategoryInput id={f('platform')} categories={platforms} defaultValue={listing.platform} />
             <div>
               <label htmlFor={f('price')} className="label">Price (₦)</label>
               <input id={f('price')} name="price" type="number" min={1} step="any" required defaultValue={listing.price} className="input" />

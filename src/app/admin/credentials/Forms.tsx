@@ -8,18 +8,14 @@ import PasswordInput from '@/components/PasswordInput';
 import SubmitButton from '@/components/SubmitButton';
 import { compressField, useActionForm } from '@/components/useActionForm';
 import { PLATFORMS } from '@/lib/site';
+import CategoryInput from './CategoryInput';
 
-export function CreateListingForm() {
+export function CreateListingForm({ categories = PLATFORMS }: { categories?: readonly string[] }) {
   const { state, pending, onSubmit, ref } = useActionForm(createListing, { resetOnOk: true, transform: compressField('image') });
   return (
     <form ref={ref} onSubmit={onSubmit} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="platform" className="label">Platform</label>
-          <select id="platform" name="platform" className="input" defaultValue="Instagram">
-            {PLATFORMS.map((p) => <option key={p}>{p}</option>)}
-          </select>
-        </div>
+        <CategoryInput id="platform" categories={[...categories]} />
         <div>
           <label htmlFor="price" className="label">Price (₦)</label>
           <input id="price" name="price" type="number" min={1} step="any" required placeholder="15000" className="input" />

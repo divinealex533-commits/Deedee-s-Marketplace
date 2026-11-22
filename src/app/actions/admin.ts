@@ -39,7 +39,7 @@ function cleanPreview(raw: string): string | null {
 // ── Listings ─────────────────────────────────────────
 
 const listingSchema = z.object({
-  platform: z.string().trim().min(1, 'Choose a platform.'),
+  platform: z.string().trim().min(1, 'Choose a category.').max(40, 'Keep the category name under 40 characters.'),
   title: z.string().trim().min(3, 'Give the listing a title.').max(120),
   description: z.string().trim().max(1000).optional().default(''),
   price: z.coerce.number().positive('Enter a price above ₦0.').max(100_000_000),
