@@ -6,6 +6,7 @@ import { formatDate, naira, signedNaira } from '@/lib/format';
 import StatCard from '@/components/StatCard';
 import { displayBalance } from '@/lib/displayBalance';
 import WelcomeToast from '@/components/WelcomeToast';
+import { getTelegramConfig } from '@/lib/settings';
 import OrderCard from './OrderCard';
 
 export const metadata = { title: 'Dashboard' };
@@ -17,6 +18,7 @@ export default async function DashboardPage({
 }) {
   const user = await requireUser();
   const sp = await searchParams;
+  const telegram = await getTelegramConfig();
   await autoCompleteOrders().catch(() => 0);
 
   const [orders, tx] = await Promise.all([
@@ -41,7 +43,7 @@ export default async function DashboardPage({
 
   return (
     <>
-      {(sp.welcome === 'new' || sp.welcome === 'back') && <WelcomeToast kind={sp.welcome} name={firstName} />}
+      {(sp.welcome === 'new' || sp.welcome === 'back') && <WelcomeToast kind={sp.welcome} name={firstName} channel={telegram.channel} />}
       <div>
         <h1 className="font-display text-3xl font-bold text-white">
           {sp.welcome === 'new' ? `Welcome, ${firstName}!` : `Welcome back, ${firstName}`}

@@ -16,6 +16,9 @@ export const site = {
 
 export const telegramLink = 'https://t.me/deedeesmarketsupport';
 
+/** t.me link for a channel or bot username (without @). */
+export const tgLink = (username: string) => `https://t.me/${username}`;
+
 export const whatsappLink = (text?: string) =>
   `https://wa.me/${site.whatsapp}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
 

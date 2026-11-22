@@ -404,6 +404,26 @@ export async function saveAnnouncement(_: FormState, fd: FormData): Promise<Form
   return { ok: enabled ? 'Announcement is live on the site.' : 'Saved. The announcement is turned off.' };
 }
 
+/** Accepts "@name", "name" or a t.me link and keeps just the username. */
+function tgUsername(raw: string) {
+  const v = raw.trim().replace(/^https?:\/\/(www\.)?(t|telegram)\.me\//i, '').replace(/^@/, '').split(/[/?#]/)[0] ?? '';
+  return v;
+}
+
+export async function saveTelegramConfig(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const channel = tgUsername(String(fd.get('channel') ?? ''));
+  const bot = tgUsername(String(fd.get('bot') ?? ''));
+  const ok = (u: string) => !u || /^[A-Za-z][A-Za-z0-9_]{3,31}$/.test(u);
+  if (!ok(channel)) return { error: 'Channel username looks wrong. Use letters, numbers and _ only, e.g. deedeesmarketplace.' };
+  if (!ok(bot)) return { error: 'Bot username looks wrong. It usually ends in "bot", e.g. deedeesmarketbot.' };
+  const value = JSON.stringify({ channel, bot });
+  await prisma.setting.upsert({ where: { key: 'telegram' }, create: { key: 'telegram', value }, update: { value } });
+  revalidateTag('settings');
+  revalidatePath('/', 'layout');
+  return { ok: 'Telegram links saved. They now show in the Help button and on the login, sign-up and log-out screens.' };
+}
+
 export async function saveReferralConfig(_: FormState, fd: FormData): Promise<FormState> {
   await requireAdmin();
   const percent = Number(fd.get('percent'));

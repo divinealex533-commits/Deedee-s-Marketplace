@@ -36,3 +36,22 @@ export const getReferralConfig = unstable_cache(
   ['referral-config'],
   { tags: ['settings'], revalidate: 300 },
 );
+
+/** Telegram channel and bot usernames (without @). Set in Admin → Settings. Empty = not shown on the site. */
+export type TelegramConfig = { channel: string; bot: string };
+
+const DEFAULT_TELEGRAM: TelegramConfig = { channel: '', bot: '' };
+
+export const getTelegramConfig = unstable_cache(
+  async (): Promise<TelegramConfig> => {
+    try {
+      const row = await prisma.setting.findUnique({ where: { key: 'telegram' } });
+      return row ? { ...DEFAULT_TELEGRAM, ...JSON.parse(row.value) } : DEFAULT_TELEGRAM;
+    } catch {
+      return DEFAULT_TELEGRAM;
+    }
+  },
+  ['telegram-config'],
+  { tags: ['settings'], revalidate: 300 },
+);
+

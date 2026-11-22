@@ -5,9 +5,10 @@ import { useEffect, useState } from 'react';
 import { ShoppingBag } from 'lucide-react';
 import Modal from './Modal';
 import ContactButtons from './ContactButtons';
+import TelegramJoin from './TelegramJoin';
 
 /** Welcome pop-up after sign-up ("new") or login ("back"). Stays until the customer closes it. */
-export default function WelcomeToast({ kind, name, admin = false }: { kind: 'new' | 'back'; name: string; admin?: boolean }) {
+export default function WelcomeToast({ kind, name, admin = false, channel = '' }: { kind: 'new' | 'back'; name: string; admin?: boolean; channel?: string }) {
   const [open, setOpen] = useState(true);
 
   useEffect(() => {
@@ -35,6 +36,11 @@ export default function WelcomeToast({ kind, name, admin = false }: { kind: 'new
           <Link href="/dashboard/marketplace" onClick={() => setOpen(false)} className="btn btn-primary mt-5 w-full py-3.5">
             <ShoppingBag className="h-5 w-5" aria-hidden="true" /> Browse accounts
           </Link>
+          {channel && (
+            <div className="mt-4">
+              <TelegramJoin channel={channel} compact />
+            </div>
+          )}
           <p className="mb-2 mt-5 text-[13px] font-medium text-muted">Need help? Contact us on</p>
           <ContactButtons />
         </>

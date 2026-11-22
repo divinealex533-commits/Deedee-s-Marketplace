@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import Modal from './Modal';
 import ContactButtons from './ContactButtons';
+import TelegramJoin from './TelegramJoin';
 
 /** "Thank you for shopping with us" after logging out (the page is opened with ?bye=1). */
-export default function GoodbyeModal() {
+export default function GoodbyeModal({ channel = '' }: { channel?: string }) {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -26,6 +27,11 @@ export default function GoodbyeModal() {
         <Link href="/login" onClick={() => setOpen(false)} className="btn btn-primary py-3">Log in again</Link>
         <button type="button" onClick={() => setOpen(false)} className="btn btn-ghost py-3">Close</button>
       </div>
+      {channel && (
+        <div className="mt-5">
+          <TelegramJoin channel={channel} compact />
+        </div>
+      )}
       <p className="mb-2 mt-5 text-[13px] font-medium text-muted">Questions? Contact us on</p>
       <ContactButtons />
     </Modal>

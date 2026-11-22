@@ -2,7 +2,9 @@ import Link from 'next/link';
 import { CheckCircle2, Circle } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
-import { getAnnouncement, getReferralConfig } from '@/lib/settings';
+import { getAnnouncement, getReferralConfig, getTelegramConfig } from '@/lib/settings';
+import ActionForm from '@/components/ActionForm';
+import { saveTelegramConfig } from '@/app/actions/admin';
 import { AnnouncementForm, NameForm, ReferralForm } from './Forms';
 
 export const metadata = { title: 'Settings' };
@@ -10,7 +12,8 @@ export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
   const admin = await requireAdmin();
-  const [announcement, referral, banks, inStock, withImage] = await Promise.all([
+  const [telegram, announcement, referral, banks, inStock, withImage] = await Promise.all([
+    getTelegramConfig(),
     getAnnouncement(),
     getReferralConfig(),
     prisma.bankAccount.count({ where: { active: true } }),
@@ -24,6 +27,7 @@ export default async function SettingsPage() {
     { done: inStock > 0, label: 'Add stock to the credentials pool', href: '/admin/credentials', hint: `${inStock} item${inStock === 1 ? '' : 's'} in stock` },
     { done: withImage > 0, label: 'Add photos to your listings', href: '/admin/credentials', hint: 'Listings with photos sell better' },
     { done: admin.name !== 'Admin', label: 'Set your display name', hint: 'Shown in your admin welcome banner' },
+    { done: Boolean(telegram.channel), label: 'Add your Telegram channel', hint: 'Shown in the Help button and on login/sign-up' },
     { done: announcement.enabled, label: 'Post a launch announcement', hint: 'e.g. “We’re live! New stock daily”' },
     { done: Boolean(appUrl) && !appUrl.includes('vercel.app'), label: 'Connect your own domain', hint: 'Vercel → Settings → Domains, then update APP_URL' },
   ];
@@ -35,6 +39,25 @@ export default async function SettingsPage() {
         <h1 className="font-display text-3xl font-bold text-white">Settings</h1>
         <p className="mt-1 text-muted">Announcement bar, your profile, and a launch checklist.</p>
       </div>
+
+      <section aria-labelledby="tg" className="card p-6">
+        <h2 id="tg" className="text-lg font-semibold text-white">Telegram channel and bot</h2>
+        <p className="mb-5 mt-1 text-sm text-muted">
+          Shown in the Help button, and as a “Join our Telegram community” box on the login, sign-up and log-out screens. Paste the username or the t.me link. Leave empty to hide.
+        </p>
+        <ActionForm action={saveTelegramConfig} submit="Save Telegram links" buttonClass="btn btn-primary" className="max-w-2xl space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="tg-channel" className="label">Channel username</label>
+            <input id="tg-channel" name="channel" defaultValue={telegram.channel} placeholder="deedeesmarketplace" className="input" />
+          </div>
+          <div>
+            <label htmlFor="tg-bot" className="label">Bot username</label>
+            <input id="tg-bot" name="bot" defaultValue={telegram.bot} placeholder="deedeesmarketbot" className="input" />
+          </div>
+          </div>
+        </ActionForm>
+      </section>
 
       <div className="flex flex-wrap gap-5">
         <section aria-labelledby="ann" className="card min-w-0 flex-[2_1_440px] p-6">

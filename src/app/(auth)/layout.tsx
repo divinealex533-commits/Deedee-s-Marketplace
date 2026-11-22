@@ -3,6 +3,8 @@ import { Lock, MessageCircle, ShieldCheck, Wallet, Zap } from 'lucide-react';
 import Logo from '@/components/Logo';
 import VisitTracker from '@/components/VisitTracker';
 import { site, whatsappLink } from '@/lib/site';
+import { getTelegramConfig } from '@/lib/settings';
+import TelegramJoin from '@/components/TelegramJoin';
 
 const perks = [
   { icon: Zap, title: 'Fast delivery', text: 'Login details land in your dashboard as soon as your payment is confirmed.' },
@@ -10,7 +12,8 @@ const perks = [
   { icon: Wallet, title: 'Simple wallet', text: 'Fund once by bank transfer, then buy in one tap.' },
 ];
 
-export default function AuthLayout({ children }: { children: ReactNode }) {
+export default async function AuthLayout({ children }: { children: ReactNode }) {
+  const telegram = await getTelegramConfig();
   return (
     <div className="relative min-h-screen overflow-hidden">
       <VisitTracker />
@@ -60,6 +63,11 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           <div className="rounded-3xl border border-line2 bg-panel/85 p-6 shadow-2xl shadow-black/50 backdrop-blur-xl sm:p-8">
             {children}
           </div>
+          {telegram.channel && (
+            <div className="mt-4">
+              <TelegramJoin channel={telegram.channel} />
+            </div>
+          )}
           <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[13px] text-muted">
             <span className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" aria-hidden="true" /> Encrypted &amp; secure</span>
             <a href={whatsappLink('Hi, I need help logging in')} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-white">

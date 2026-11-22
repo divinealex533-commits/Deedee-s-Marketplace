@@ -4,12 +4,14 @@ import SiteFooter from '@/components/SiteFooter';
 import VisitTracker from '@/components/VisitTracker';
 import GoodbyeModal from '@/components/GoodbyeModal';
 import AnnouncementBar from '@/components/AnnouncementBar';
+import { getTelegramConfig } from '@/lib/settings';
 
-export default function SiteLayout({ children }: { children: ReactNode }) {
+export default async function SiteLayout({ children }: { children: ReactNode }) {
+  const telegram = await getTelegramConfig();
   return (
     <>
       <VisitTracker />
-      <GoodbyeModal />
+      <GoodbyeModal channel={telegram.channel} />
       <AnnouncementBar />
       <SiteHeader />
       <main>{children}</main>

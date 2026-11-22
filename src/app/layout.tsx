@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import './globals.css';
 import { site, SITE_URL } from '@/lib/site';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
+import { getTelegramConfig } from '@/lib/settings';
 
 export const metadata: Metadata = {
   title: { default: site.name, template: `%s · ${site.name}` },
@@ -13,7 +14,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: '#0B1020' };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const telegram = await getTelegramConfig();
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -33,7 +35,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body className="font-sans">
         {children}
-        <WhatsAppFloat />
+        <WhatsAppFloat channel={telegram.channel} bot={telegram.bot} />
       </body>
     </html>
   );
