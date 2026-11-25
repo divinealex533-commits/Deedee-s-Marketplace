@@ -5,13 +5,11 @@ import ThemeToggle from './ThemeToggle';
 import { getSession } from '@/lib/auth';
 
 const links = [
-  { href: '/#stock', label: 'Marketplace' },
-  { href: '/#features', label: 'Features' },
   { href: '/#how', label: 'How it works' },
-  { href: '/reviews', label: 'Reviews' },
+  { href: '/#stock', label: 'Categories' },
   { href: '/#faq', label: 'FAQ' },
-  { href: '/#support', label: 'Support' },
-  { href: '/docs/api', label: 'API' },
+  { href: '/#sell', label: 'Sell' },
+  { href: '/#support', label: 'Help' },
 ];
 
 export default async function SiteHeader() {

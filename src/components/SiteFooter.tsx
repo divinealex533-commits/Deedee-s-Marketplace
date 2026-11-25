@@ -13,8 +13,8 @@ export default function SiteFooter() {
           <div>
             <h3 className="mb-3 font-semibold text-white">Quick links</h3>
             <ul className="space-y-2 text-muted">
-              <li><Link href="/#about" className="hover:text-white">About</Link></li>
-              <li><Link href="/#features" className="hover:text-white">Features</Link></li>
+              <li><Link href="/#how" className="hover:text-white">How it works</Link></li>
+              <li><Link href="/#sell" className="hover:text-white">Become a seller</Link></li>
               <li><Link href="/signup" className="hover:text-white">Create account</Link></li>
               <li><Link href="/login" className="hover:text-white">Log in</Link></li>
               <li><Link href="/reviews" className="hover:text-white">Reviews</Link></li>
