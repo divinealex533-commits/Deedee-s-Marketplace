@@ -207,3 +207,22 @@ body {
 
 /* Full-colour emoji icons (Apple / Windows / Android) */
 .emoji { font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; }
+
+/* Homepage: soft moving colour blobs behind the hero */
+@keyframes blobMove {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(30px, -20px) scale(1.08); }
+}
+.hero-blob { animation: blobMove 14s ease-in-out infinite; filter: blur(60px); }
+
+/* Card with a glowing gradient edge */
+.glow-card { position: relative; }
+.glow-card::before {
+  content: ''; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(135deg, rgba(139, 115, 255, 0.7), rgba(139, 115, 255, 0) 40%, rgba(110, 231, 183, 0) 60%, rgba(110, 231, 183, 0.5));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-blob { animation: none !important; }
+}
